@@ -1,16 +1,43 @@
 # Pitfalls & tie-breaker rationale
 
+**Last verified: 2026-07.** Version-sensitive claims follow the Currency rule in
+`SKILL.md`.
+
 Load this when a routing choice is contested or a known trap applies. These are the
 mistakes and decision points the base model tends to miss.
 
 ## Framework pitfalls
 
-- **Never mix JUnit 4 and JUnit 5 in one class.** `org.junit.Test` (4) and
-  `org.junit.jupiter.api.Test` (5) look identical at a glance and cause silent,
+- **Never mix JUnit 4 and Jupiter in one class.** `org.junit.Test` (4) and
+  `org.junit.jupiter.api.Test` (5/6) look identical at a glance and cause silent,
   weird failures — lifecycle callbacks not firing, tests "passing" without running.
   Pick one per class. With Spring Boot on the classpath this is easy to do by accident.
-- JUnit 5 test classes/methods can be **package-private** — don't add `public` out of
+- Jupiter test classes/methods can be **package-private** — don't add `public` out of
   JUnit 4 habit.
+
+## JUnit 6 migration pitfalls
+
+- **Don't mix 5.x and 6.x artifacts.** JUnit 6 unified versioning: Platform, Jupiter,
+  and Vintage all ship as 6.x (no more platform 1.x vs jupiter 5.x). A 5.x
+  `junit-platform-launcher` with 6.x Jupiter (or vice versa, often dragged in
+  transitively by build-tool or IDE plugins) breaks discovery. Import the
+  `junit-bom` and let it pin everything.
+- **Java 17+ / Kotlin 2.2+ required.** On Java 8–16, stay on JUnit 5 — same Jupiter
+  API, so migrate the JDK first, then bump JUnit.
+- **Upgrade via 5.14 first.** 5.14 flags everything 6.0 removed as deprecated —
+  fix those warnings and 6.0 is close to a version bump.
+- **Vintage engine is deprecated in 6** (it logs a discovery issue per JUnit 4 class)
+  and frameworks are dropping its dependency management (e.g. Spring Boot 4 no longer
+  manages it) — declare and version it explicitly if you still need it, and treat it
+  as migration scaffolding, not a destination. `junit-platform-runner` (running
+  Platform tests *under* JUnit 4) is **removed**.
+- **Parameterized CSV behavior changed** — JUnit 6 swapped univocity-parsers for
+  FastCSV: `lineSeparator` is gone from `@CsvFileSource` (auto-detected now) and
+  stray characters after a closing quote are rejected. Quirky `@CsvSource` data that
+  passed on 5.x can fail on 6.x.
+- **With Spring Boot, take the Boot-managed JUnit line** — Boot 3.5.x manages
+  JUnit 5, Boot 4.x manages JUnit 6. Overriding the managed version means owning
+  `junit-bom` alignment yourself; prefer upgrading Boot to get JUnit 6.
 
 ## Assertion pitfalls
 

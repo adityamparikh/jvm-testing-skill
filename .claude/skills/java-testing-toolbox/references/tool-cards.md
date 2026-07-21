@@ -1,5 +1,9 @@
 # Tool cards
 
+**Last verified: 2026-07.** Version-sensitive claims below (majors, "no official
+X" statements) follow the Currency rule in `SKILL.md` — spot-check release notes
+when time has passed.
+
 One card per tool: what it's for and the **one high-signal note** worth loading —
 the selection criterion or pitfall you won't reliably get from generic knowledge.
 Basic usage is intentionally omitted (it's well-known / in the book). For runnable
@@ -7,12 +11,22 @@ code see `github.com/rieckpil/java-testing-ecosystem`.
 
 ## Test frameworks
 
-- **JUnit 5 (Jupiter)** — default framework. Note: classes/methods can be
-  package-private; the extension model (`@ExtendWith`, `ParameterResolver`) replaces
-  JUnit 4 runners + rules.
+- **JUnit 6 (Jupiter)** — default framework for Java 17+ (GA 2025-09-30). Note:
+  same Jupiter API/packages as JUnit 5, so from 5.14 + Java 17 it's mostly a
+  version bump — the traps are elsewhere: Platform/Jupiter/Vintage now share one
+  6.x version (use `junit-bom`; mixed 5.x/6.x artifacts break), the CSV engine
+  behind `@CsvSource`/`@CsvFileSource` changed to FastCSV, and
+  `junit-platform-runner` is gone. Gains: Kotlin `suspend` test methods, JSpecify
+  nullability, fail-fast/`CancellationToken`, JFR support built into the launcher.
+- **JUnit 5 (Jupiter)** — same programming model when stuck on **Java 8–16**
+  (JUnit 6 requires 17+). Note: classes/methods can be package-private; the
+  extension model (`@ExtendWith`, `ParameterResolver`) replaces JUnit 4
+  runners + rules. Get to 5.14 before jumping to 6 — it flags 6.0 removals as
+  deprecations.
 - **JUnit 4** — legacy only. Note: uses runners (`@RunWith`) and rules
   (`@Rule`/`@ClassRule`); needs `junit-vintage-engine` to run under the JUnit
-  Platform. Migrate forward.
+  Platform — **deprecated in JUnit 6** (reports a discovery issue per JUnit 4
+  class found). Migrate forward.
 - **TestNG** — choose for `@DataProvider`, `dependsOnMethods`, and built-in
   parallelism (`invocationCount`, `threadPoolSize`, `successPercentage`). Note:
   test suites are configured via XML/YAML.
@@ -48,9 +62,10 @@ code see `github.com/rieckpil/java-testing-ecosystem`.
 ## HTTP mocking
 
 - **WireMock** — default when you must match requests richly, verify calls, set
-  stub priorities, or run a standalone/Docker mock server. Note: no official JUnit 5
-  extension historically — manage lifecycle with `@BeforeAll`/`@AfterAll` or a
-  community extension; reset stubs between tests.
+  stub priorities, or run a standalone/Docker mock server. Note: use the official
+  Jupiter support — `@WireMockTest` or a registered `WireMockExtension`
+  (WireMock 2.31+/3.x) — instead of hand-rolling lifecycle in
+  `@BeforeAll`/`@AfterAll`; stubs reset automatically between tests.
 - **MockWebServer** — lightweight (part of OkHttp). Note: responses are **FIFO
   `enqueue()`d — matching is by order, not by URL**. Use a `Dispatcher` when you need
   URL/method-based responses or repeated responses.

@@ -9,7 +9,8 @@ description: >-
   knowledge misses. Triggers on: assert JSON or XML, mock an external HTTP API,
   integration test with a real database/broker/cloud, test asynchronous code,
   load-test or microbenchmark, contract-test microservices, enforce architecture
-  rules, generate test data, or judge test quality beyond coverage.
+  rules, generate test data, judge test quality beyond coverage, or decide
+  between JUnit versions (4 vs 5 vs 6) and handle JUnit 6 migration gotchas.
 ---
 
 # Java Testing Toolbox — tool selector
@@ -32,14 +33,24 @@ Libraries Every Java Developer Must Know_**. Full credit and links in the repo
    `references/pitfalls.md` (cross-cutting gotchas + tie-breaker rationale).
 4. Only pull deeper detail when routing has landed — don't preload all cards.
 
+## Currency
+
+**Last verified: 2026-07** (JUnit 6.0.x era). Routing facts age. If the answer
+hinges on a version-sensitive fact — a framework major, a "tool X (doesn't)
+support Y" claim, a default that names a release — and time has passed since
+the stamp above, spot-check the tool's current release notes before asserting
+it. When current docs disagree with a row here, the docs win; say so and note
+the row is stale.
+
 ## Routing tables
 
 ### Test frameworks
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Write a standard unit/integration test | **JUnit 5 (Jupiter)** | The default for anything new. |
-| Maintain a legacy suite on the old API | JUnit 4 | Migrate when able. **Never mix JUnit 4 and 5 imports in one class** — see pitfalls. |
+| Write a standard unit/integration test on Java 17+ | **JUnit 6 (Jupiter)** | The default for anything new (GA Sep 2025). Same Jupiter API/packages as JUnit 5; Platform/Jupiter/Vintage now share one 6.x version — align via `junit-bom`. |
+| Write tests but stuck on Java 8–16 | JUnit 5 (Jupiter) | Same programming model; JUnit 6 requires **Java 17+** (Kotlin 2.2+). |
+| Maintain a legacy suite on the old API | JUnit 4 | Runs via `junit-vintage-engine` — **deprecated in JUnit 6**; migrate when able. **Never mix JUnit 4 and Jupiter imports in one class** — see pitfalls. |
 | Data-driven params, test ordering, parallel groups | TestNG | `@DataProvider`, `dependsOnMethods`, `invocationCount`/`threadPoolSize`. |
 | BDD style with built-in mocking + rich assertions | Spock (Groovy) | given/when/then blocks, data tables, `Mock()`/`Stub()`, `1 * mock.call()`. No separate mock/assert libs needed. |
 
@@ -128,7 +139,9 @@ Libraries Every Java Developer Must Know_**. Full credit and links in the repo
 
 ## Cross-cutting reminders
 
-- **Don't mix JUnit 4 and JUnit 5** annotations/imports in the same test class.
+- **Don't mix JUnit 4 and Jupiter (JUnit 5/6)** annotations/imports in the same test class.
+- **Don't mix JUnit 5.x and 6.x artifacts** on one classpath — JUnit 6 unified
+  Platform/Jupiter/Vintage under a single version; import the `junit-bom`.
 - **Awaitility over `Thread.sleep`** for anything asynchronous.
 - **PIT/mutation score, not line coverage**, is the real test-quality signal.
 - Prefer the **book-default in bold**; deviate only when a tie-breaker condition

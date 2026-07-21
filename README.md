@@ -50,7 +50,7 @@ The 30 tools from the book, grouped by problem:
 
 | Category | Tools |
 |---|---|
-| Test frameworks | JUnit 5, JUnit 4, TestNG, Spock |
+| Test frameworks | JUnit 6, JUnit 5, JUnit 4, TestNG, Spock |
 | Assertion libraries | AssertJ, Hamcrest, JsonPath, JSONAssert, XMLUnit |
 | Mocking | Mockito (+ Spock mocks) |
 | HTTP mocking | WireMock, MockWebServer |
@@ -62,6 +62,10 @@ The 30 tools from the book, grouped by problem:
 | Behavior-driven | JGiven (+ Spock) |
 | Contract testing | Pact |
 | Architecture & quality | ArchUnit, Instancio, Diffblue Cover, PIT mutation testing |
+
+The skill tracks the ecosystem where it has moved since the book — e.g. JUnit 6
+(GA September 2025) is covered as the current default, with its migration
+pitfalls, on top of the book's JUnit 5 guidance.
 
 ## Usage
 
