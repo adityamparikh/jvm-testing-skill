@@ -10,13 +10,12 @@ quick decision, use the "Kotlin on the JVM" table in `SKILL.md`.
 
 ## MockK vs Mockito (+ mockito-kotlin)
 
-- **Mockito is more capable on Kotlin than its reputation suggests.** Since
-  **Mockito 5** the inline mock-maker is the default in `mockito-core`, so
-  final-by-default Kotlin classes mock with **no extra dependency and no
-  `mock-maker-inline` resource file**. `mockito-kotlin` adds `whenever`,
-  `mock<T>()`, `argumentCaptor`, nullable-safe matchers (its `any()` won't push
-  `null` into a non-null parameter), and `onBlocking { }` for stubbing `suspend`
-  functions.
+- **Mockito is more capable on Kotlin than its reputation suggests.** Final-by-default
+  Kotlin classes mock with no extra dependency — the inline mock-maker has been the
+  default since Mockito 5 (see the Mockito card in `tool-cards.md`). What Kotlin adds
+  on top is `mockito-kotlin`: `whenever`, `mock<T>()`, `argumentCaptor`, nullable-safe
+  matchers (its `any()` won't push `null` into a non-null parameter), and
+  `onBlocking { }` for stubbing `suspend` functions.
 - **MockK earns its place** where Mockito genuinely can't be idiomatic: `object`
   singletons (`mockkObject`), top-level and extension functions (`mockkStatic`),
   and *suspending* answers needing real control (`coEvery { } coAnswers { … }`) —

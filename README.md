@@ -17,18 +17,27 @@ LLM already knows (basic JUnit 5 / Mockito / AssertJ usage). Its value is the
 
 ## Credit
 
-This skill is **based entirely on the work of [Philip Riecks](https://rieckpil.de/)**
-and his book:
+This skill **began as a distillation of [Philip Riecks](https://rieckpil.de/)'
+book**, and his selection and categorization are still its backbone:
 
 > **_Java Testing Toolbox: 30 Testing Tools and Libraries Every Java Developer
 > Must Know_** — Philip Riecks
 
-The Java tool selection, the categorization, the selection guidance, and the
-pitfalls are distilled from that book — **curated rather than mirrored** (see
-Coverage above for what is omitted and why). The Kotlin coverage (MockK,
-kotlinx-coroutines-test, Turbine, Kotest Property) and the mixed Java/Kotlin
-interop notes are **additions beyond the book** — not Philip's work, and not to
-be attributed to him. Please support the original work:
+It has since diverged, so please don't read the whole of it as his work:
+
+- **Curated.** Several of the book's tools were dropped and the list re-tiered
+  around what JVM teams reach for most — see Coverage above for each cut and its
+  reason.
+- **Extended.** Playwright, Cucumber, and the entire Kotlin side (MockK,
+  kotlinx-coroutines-test, Turbine, Kotest Property, and the Java/Kotlin interop
+  notes) are additions the book doesn't cover — it is Java-framed.
+- **Updated.** Version-sensitive guidance is re-checked against current release
+  notes and corrected where the ecosystem moved — JUnit 6 as the default, and
+  Mockito 5 making the inline mock-maker standard, among others.
+
+The Java tool selection, the categorization, and the pitfalls distilled from the
+book are Philip's. The cuts, the additions, and any errors in them are mine.
+Please support the original work:
 
 - 📘 Book: https://leanpub.com/java-testing-toolbox
 - ✍️ Blog: https://rieckpil.de/
@@ -133,5 +142,6 @@ personal skills directory) so your agent can discover it. The agent loads
 
 ## License
 
-[Apache-2.0](./LICENSE). The knowledge is credited to Philip Riecks (see above);
-the packaging is provided under Apache-2.0.
+[Apache-2.0](./LICENSE). The Java core is credited to Philip Riecks (see
+[Credit](#credit)); the curation, the additions, and the packaging are provided
+under Apache-2.0.
