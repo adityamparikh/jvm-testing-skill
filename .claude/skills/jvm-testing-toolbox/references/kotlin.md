@@ -52,14 +52,26 @@ quick decision, use the "Kotlin on the JVM" table in `SKILL.md`.
   Blocking inside `runTest` to bridge the gap stalls the virtual clock — the test
   hangs or silently takes real time.
 
-## Flow testing: Turbine
+## Flow testing: first-party first, Turbine when it earns it
 
-- `flow.test { … }` collects the flow inside a scope and **requires every emission
-  to be consumed** — `awaitItem()`, `awaitComplete()`, `awaitError()`. If the flow
-  emits more than the test consumes, the block fails; a plain `toList()` collect
-  would silently pass.
-- For infinite/hot flows, end with `cancelAndIgnoreRemainingEvents()`.
-- Combine with virtual time (`runTest`) when the flow uses `delay`/`debounce`.
+- **Start first-party.** For a **cold, finite** flow, collect it inside `runTest`:
+  `toList()`, `first()`, `last()`. This is exact, needs no extra dependency, and is
+  what the official coroutines docs reach for.
+- **Hot flows can't be `toList()`-ed.** `StateFlow`/`SharedFlow` never complete, so
+  the collection never returns and the test hangs. The first-party answer is
+  `TestScope.backgroundScope.launch { … }` — coroutines started there are cancelled
+  at the end of the test, so `runTest` doesn't wait forever. Pair it with
+  `UnconfinedTestDispatcher` so the collector is running before the first emission.
+- **Turbine earns its place** in two cases the above handle awkwardly:
+  1. **Asserting between emissions** — `awaitItem()` inspects events one at a time
+     and lets you interleave assertions, instead of only asserting on the final list.
+  2. **Catching over-emission** — `flow.test { … }` **fails on any unconsumed item**,
+     so an extra or late emission is a failure rather than something an
+     assertion on list size averages away.
+- Turbine specifics: `awaitError()` for failures, `cancelAndIgnoreRemainingEvents()`
+  for infinite flows, `expectMostRecentItem()` to skip to the latest state.
+- Combine either approach with virtual time (`runTest`) when the flow uses
+  `delay`/`debounce`.
 
 ## Property testing: Kotest Property
 

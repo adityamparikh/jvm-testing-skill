@@ -142,10 +142,13 @@ Java and Kotlin — often in one source set. Depth and the interop traps live in
   Inject dispatchers into production code — a hardcoded `Dispatchers.IO` can't be
   swapped for a `TestDispatcher`. **Not** a substitute for Awaitility: virtual time
   cannot wait on a real container or HTTP endpoint.
-- **Turbine** — assert on `Flow` emissions. Note: `flow.test { awaitItem();
-  awaitComplete() }` **fails if any emitted item goes unconsumed**, catching
-  over-emission that a plain `toList()` collect would hide. `awaitError()` for
-  failures; `cancelAndIgnoreRemainingEvents()` for infinite flows.
+- **Turbine** — assert on `Flow` emissions. Note: **it is the escalation, not the
+  baseline.** A cold, finite flow needs no dependency — `toList()` inside `runTest`
+  is exact; a hot flow can be collected in `TestScope.backgroundScope`. Turbine earns
+  its place when you need to assert *between* emissions (`awaitItem()`), or want
+  over-emission to fail rather than pass — `flow.test { }` **fails on any unconsumed
+  item**. `awaitError()` for failures; `cancelAndIgnoreRemainingEvents()` for
+  infinite flows.
 - **Kotest Property** — property-based testing for Kotlin. Note: `checkAll` + `Arb`
   generators run **inside an ordinary Jupiter `@Test`** via `kotest-property` alone —
   no Kotest engine and no spec styles, so the module keeps a single test engine.

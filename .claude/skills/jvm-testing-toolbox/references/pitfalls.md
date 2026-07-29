@@ -143,9 +143,14 @@ source-set traps — `@JvmStatic`, platform types, `internal` friend-paths — s
   blocking inside `runTest` to bridge the gap stalls the virtual clock, so the test
   hangs or quietly takes real time. Coroutine scheduling and eventual consistency are
   different problems with different tools.
-- **`Flow` tests silently pass without Turbine.** Collecting to a list and asserting on
-  size can miss extra or late emissions. **Turbine**'s `test { }` fails on any
-  unconsumed item, so over-emission is caught rather than averaged away.
+- **Don't reach for Turbine reflexively — and never `toList()` a hot flow.** For a
+  **cold, finite** flow, collecting inside `runTest` (`toList()`/`first()`/`last()`)
+  is exact and needs no dependency. A **hot** flow (`StateFlow`/`SharedFlow`) never
+  completes, so `toList()` hangs the test: collect it in `TestScope.backgroundScope`,
+  which is cancelled at test end, or use **Turbine**. Turbine's own added value is
+  that `test { }` fails on any *unconsumed* item — so over-emission is caught rather
+  than averaged away by an assertion on list size — and that you can assert
+  *between* emissions rather than only on the final collection.
 - **PIT reports mislead on Kotlin.** The compiler emits `Intrinsics` null checks that
   PIT mutates, filling reports with `removed call to
   kotlin/jvm/internal/Intrinsics::… → SURVIVED` false positives. The option that
