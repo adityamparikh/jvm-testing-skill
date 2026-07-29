@@ -13,11 +13,39 @@
 - **Docs-only repo — there is no build system** (no `pom.xml` / `build.gradle`). "Verification" means `grep`/read checks + routing sanity, NOT a build or test run. Do not fabricate a build step.
 - **Work happens on the existing branch `feat/jvm-testing-kotlin-overlay`** (design doc already committed there; PR #1 open). Do not branch again; do not commit to `main`.
 - **Every commit uses sign-off + co-author trailer.** Use `git commit -s` and append verbatim:
-  `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`
+  `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`
 - **Skill slug is `jvm-testing-toolbox`** everywhere (directory name, frontmatter `name`, README paths). The book *title* "Java Testing Toolbox" (with spaces) stays as-is in credit text — it is the source's name, not the slug.
-- **"Beyond the book" framing:** MockK, Kotest, kotlinx-coroutines-test, Turbine, and Konsist are additions beyond Philip Riecks' (Java-framed) book. Every place they appear must signal this so the skill doesn't imply the book covers them.
-- **Currency stamp stays `2026-07`** — do not bump it; new content is same-era.
+- **"Beyond the book" framing:** MockK, kotlinx-coroutines-test, Turbine, Kotest Property, and jqwik are additions beyond Philip Riecks' (Java-framed) book. Every place they appear must signal this so the skill doesn't imply the book covers them — **including README's `## Credit` section** (Task 6), which today claims every tool and pitfall is distilled from the book.
+- **One engine (Jupiter).** JUnit Jupiter is the sole test engine for the module: one runner, one report, one CI config. Libraries may differ per file; engines may not. Kotest enters as a **library only** (assertions + property testing callable from a Jupiter `@Test`), never for its spec styles. jqwik's own Platform engine is the single stated exception and must be flagged as a cost, not hidden.
+- **Currency stamp stays `2026-07`** — do not bump it. **But the stamp is a promise that the content under it was checked:** every content task below ends with a fact-check step that spot-checks its new version-sensitive claims against current release notes. A `grep` presence check is not verification. Facts already verified for this plan are listed under "Verified facts" below — do not re-derive them, but do re-check anything you add beyond them.
+- **Konsist is out of scope.** ArchUnit reads bytecode and already runs on Kotlin; a second architecture tool isn't justified in a skill whose value is fewer, better-defended choices. Do not add Konsist cards, rows, or triggers.
 - **Preserve existing style:** terse router rows (`| I need to… | Reach for | Tie-breaker / note |`), **bold** the default, one high-signal note per tool card.
+
+## Verified facts (checked 2026-07-29 — do not re-derive)
+
+These were wrong or unverified in the first draft of this plan. Sources checked:
+
+- **Mockito 5.0.0 made the inline mock-maker the default in `mockito-core`.** Kotlin's
+  final-by-default classes mock with **no extra dependency and no `mock-maker-inline`
+  resource file**. The separate `mockito-inline` artifact stopped being published after
+  5.2. Any claim that Mockito "can't mock Kotlin classes without the inline mock-maker"
+  describes Mockito 4 and is stale.
+- **`mockito-kotlin` can stub `suspend` functions** via `onBlocking { }` /
+  `wheneverBlocking`. It has real rough edges — custom *suspending* answers (delay,
+  indefinite suspension) and value-class boxing are awkward — but "Mockito cannot stub
+  suspend functions" is false. MockK's advantage is ergonomics and advanced cases, not
+  raw capability.
+- **jqwik registers its own JUnit Platform engine.** It coexists with Jupiter (declare
+  both engines), but it *is* a second engine, with known IDE test-discovery quirks when
+  several engines are present. `jqwik-api` / `jqwik-engine` can be declared separately.
+- **Kotest's assertions and property modules are separable.** `kotest-assertions-core`
+  and `kotest-property` work inside a Jupiter `@Test` without the Kotest engine.
+- **JUnit 6 natively supports Kotlin `suspend` test functions** (needs Java 17+ /
+  Kotlin 2.2+).
+- **PIT mutates Kotlin's compiler-generated `Intrinsics` null checks**, flooding reports
+  with `removed call to kotlin/jvm/internal/Intrinsics::… → SURVIVED` false positives.
+  The option that suppresses them also stops mutating any statement containing a null
+  check — including real business logic. This is a genuine mixed-module trap.
 
 ---
 
@@ -62,7 +90,8 @@ Replace the entire `description: >-` block (lines currently ending "…handle JU
 ```yaml
 description: >-
   Use when choosing which JVM testing tool to reach for on a specific challenge
-  in a Java and/or Kotlin project — picking a test framework, assertion library,
+  in a Java and/or Kotlin project — including when both languages share one
+  module and source set. Covers picking a test framework, assertion library,
   mocking approach, or an HTTP / infrastructure / UI / performance / contract /
   architecture tool. Routes a testing problem to the right tool from Philip
   Riecks' "Java Testing Toolbox" (plus Kotlin-native additions) and flags the
@@ -71,10 +100,11 @@ description: >-
   real database/broker/cloud, test asynchronous code, load-test or
   microbenchmark, contract-test microservices, enforce architecture rules,
   generate test data, judge test quality beyond coverage, decide between JUnit
-  versions (4 vs 5 vs 6) and handle JUnit 6 migration gotchas, pick a
-  Kotlin-idiomatic tool (MockK vs Mockito, Kotest, Konsist), mock a final Kotlin
-  class, or test Kotlin coroutines/suspend functions and Flows
-  (kotlinx-coroutines-test, Turbine).
+  versions (4 vs 5 vs 6) and handle JUnit 6 migration gotchas, choose between
+  MockK and Mockito on Kotlin, mock a Kotlin `object` or extension function,
+  test Kotlin coroutines/suspend functions and Flows (kotlinx-coroutines-test,
+  Turbine), write property-based tests (jqwik, Kotest Property), or fix
+  Java/Kotlin test interop problems in a mixed source set.
 ```
 
 - [ ] **Step 5: Update the H1 title**
@@ -104,29 +134,29 @@ Expected: new dir listed; `name:` matches; the recursive grep prints nothing (so
 git add .claude/skills/
 git commit -s -m "Rename java-testing-toolbox skill to jvm-testing-toolbox
 
-Retarget frontmatter name + description so Kotlin prompts (MockK, Kotest,
-coroutines, Flow, Konsist, final-class mocking) route here. Directory,
+Retarget frontmatter name + description so Kotlin prompts (MockK, coroutines,
+Flow, property testing, mixed-source-set interop) route here. Directory,
 name, and H1 updated; book title unchanged in prose.
 
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
 
-### Task 2: Add Kotlin tool cards to `references/tool-cards.md`
+### Task 2: Add Kotlin + property-testing tool cards to `references/tool-cards.md`
 
-Adds one high-signal card per Kotlin tool, matching the existing card style.
+Adds one high-signal card per new tool, matching the existing card style.
 
 **Files:**
 - Modify: `.claude/skills/jvm-testing-toolbox/references/tool-cards.md` (append a new section at end of file, after the "Architecture & quality" section)
 
 **Interfaces:**
 - Consumes: renamed dir from Task 1.
-- Produces: cards for **MockK, Kotest, kotlinx-coroutines-test, Turbine, Konsist** that `SKILL.md` (Task 5) points into.
+- Produces: cards for **MockK, kotlinx-coroutines-test, Turbine, Kotest Property, jqwik** that `SKILL.md` (Task 5) points into.
 
 - [ ] **Step 1: Verify the tools are absent today**
 
-Run: `grep -n "MockK\|Kotest\|Turbine\|Konsist\|coroutines-test" .claude/skills/jvm-testing-toolbox/references/tool-cards.md || echo "OK: absent"`
+Run: `grep -n "MockK\|Kotest\|Turbine\|jqwik\|coroutines-test" .claude/skills/jvm-testing-toolbox/references/tool-cards.md || echo "OK: absent"`
 Expected: prints `OK: absent`.
 
 - [ ] **Step 2: Append the Kotlin section**
@@ -134,47 +164,61 @@ Expected: prints `OK: absent`.
 At the end of `references/tool-cards.md`, add:
 ```markdown
 
-## Kotlin (beyond the book)
+## Kotlin & property testing (beyond the book)
 
-- **MockK** — idiomatic Kotlin mocking. Note: built for Kotlin's defaults — mocks
-  `final` classes with no config, plus `object`s (`mockkObject`), static/top-level
-  and extension functions (`mockkStatic`), and coroutines (`coEvery { } returns`,
-  `coVerify { }`). `relaxed = true` / `@RelaxedMockK` avoids stubbing every call.
-  Don't run MockK and Mockito in the same module — pick one.
-- **Kotest** — Kotlin-native framework + assertions. Note: multiple spec styles
-  (`StringSpec`, `BehaviorSpec`, `FunSpec`), first-class property testing
-  (`checkAll`, `Arb`), and `shouldBe`/`shouldContain` matchers usable even from
-  JUnit (add `kotest-assertions-core` alone). Optional — JUnit 6 runs Kotlin fine;
-  adopt Kotest for spec styles / property testing, not by default.
+- **MockK** — idiomatic Kotlin mocking. Note: reach for it over Mockito when you need
+  `object` singletons (`mockkObject`), top-level/extension functions (`mockkStatic`),
+  or *suspending* answers with real control (`coEvery { } coAnswers { }`) — **not**
+  merely to mock final classes, which Mockito 5 does by default. `relaxed = true` /
+  `@RelaxedMockK` avoids stubbing every call. In a mixed module the rule is **never
+  two mockers on the same type**, not "one mocker per module".
 - **kotlinx-coroutines-test** — test `suspend`/coroutine code. Note: `runTest { }`
   uses a virtual-time scheduler so `delay()` is skipped and tests stay
   deterministic. `StandardTestDispatcher` queues coroutines (advance with
   `advanceUntilIdle()`/`runCurrent()`); `UnconfinedTestDispatcher` runs them
   eagerly. Inject dispatchers into production code — hardcoded `Dispatchers.IO`
-  can't be swapped for a `TestDispatcher`.
+  can't be swapped for a `TestDispatcher`. **Not** a substitute for Awaitility:
+  virtual time cannot wait on a real container or HTTP endpoint.
 - **Turbine** — assert on `Flow` emissions. Note: `flow.test { awaitItem();
   awaitComplete() }` **fails if any emitted item goes unconsumed**, catching
   over-emission a plain `toList()` collect would hide. `awaitError()` for
   failures; `cancelAndIgnoreRemainingEvents()` for infinite flows.
-- **Konsist** — Kotlin architecture/consistency tests. Note: parses Kotlin *source*
-  via the compiler, so it sees top-level functions, extension functions, and
-  package structure that ArchUnit's *bytecode* view misses. Rules run as
-  JUnit/Kotest tests. Use alongside ArchUnit (stronger on JVM-level layering), not
-  necessarily instead.
+- **Kotest Property** — property-based testing for Kotlin. Note: `checkAll` + `Arb`
+  generators run **inside an ordinary Jupiter `@Test`** via `kotest-property` alone —
+  no Kotest engine and no spec styles, so the module keeps a single test engine.
+  (`kotest-assertions-core` is separable the same way if you want `shouldBe`.)
+- **jqwik** — property-based testing for Java. Note: `@Property` with `@ForAll`
+  parameters, and shrinking to a minimal failing case. It **registers its own JUnit
+  Platform engine**, so it runs *alongside* Jupiter rather than inside it — declare
+  both engines and expect occasional IDE discovery quirks with several engines
+  present. That second engine is the price of Java-side property testing.
 ```
 
 - [ ] **Step 3: Verify all five cards present**
 
-Run: `grep -c "^- \*\*MockK\*\*\|^- \*\*Kotest\*\*\|^- \*\*kotlinx-coroutines-test\*\*\|^- \*\*Turbine\*\*\|^- \*\*Konsist\*\*" .claude/skills/jvm-testing-toolbox/references/tool-cards.md`
-Expected: `5`.
+Run: `grep -c "^- \*\*MockK\*\*\|^- \*\*kotlinx-coroutines-test\*\*\|^- \*\*Turbine\*\*\|^- \*\*Kotest Property\*\*\|^- \*\*jqwik\*\*" .claude/skills/jvm-testing-toolbox/references/tool-cards.md`
+Expected: `5`. Also confirm `grep -c "Konsist" …` returns `0`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Fact-check the claims in these cards (Currency rule)**
+
+The claims in Step 2 were verified on 2026-07-29 (see "Verified facts" above). Re-check
+only if you altered the wording or added a claim. If you did, check it against the tool's
+**current release notes or docs**, not memory. When current docs disagree, the docs win —
+change the card and note it. Specifically re-check before shipping any change to:
+Mockito's default mock-maker, `mockito-kotlin`'s `onBlocking`, jqwik's engine
+registration, or Kotest module separability.
+
+- [ ] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/jvm-testing-toolbox/references/tool-cards.md
-git commit -s -m "Add Kotlin tool cards (MockK, Kotest, coroutines-test, Turbine, Konsist)
+git commit -s -m "Add Kotlin + property-testing tool cards
 
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+MockK, kotlinx-coroutines-test, Turbine, Kotest Property, jqwik. Marked
+beyond the book. Claims spot-checked against current docs per the
+Currency rule.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -198,43 +242,73 @@ Expected: `OK: absent`.
 At the end of `references/pitfalls.md`, add:
 ```markdown
 
-## Kotlin pitfalls
+## Kotlin pitfalls (beyond the book)
 
-- **Mockito fights Kotlin's defaults.** Kotlin classes/methods are `final` unless
-  `open`, so plain Mockito can't mock them without the **inline mock-maker**
-  (`mockito-inline` / the `mock-maker-inline` resource). Its `any()` can also
-  return `null` into a non-null Kotlin parameter and throw. Use **MockK**, or add
-  **mockito-kotlin** (`whenever`, `mock()`, nullable-safe matchers). Don't run
-  both mockers in one module.
+These tools and gotchas are **additions beyond Philip Riecks' (Java-framed) book**.
+
+- **Mockito's Kotlin friction is smaller than its reputation.** Since **Mockito 5**
+  the inline mock-maker is the default in `mockito-core`, so Kotlin's
+  final-by-default classes mock with no extra dependency — the older
+  `mockito-inline` / `mock-maker-inline` advice is stale. What still bites: `any()`
+  can push `null` into a non-null Kotlin parameter and throw, which
+  **mockito-kotlin** fixes (`whenever`, `mock<T>()`, nullable-safe matchers). It
+  also stubs `suspend` functions via `onBlocking { }`.
+- **Choose a mocker per type, not per module.** MockK earns its place for `object`s,
+  extension/top-level functions, and suspending answers that need real control;
+  Mockito + mockito-kotlin covers the rest. In a mixed source set both may sit on
+  the classpath — an accepted cost, not an error. The actual mistake is **two
+  mockers on the same type**, which produces confusing failures.
 - **Coroutine tests must not use real time.** Use `runTest { }` (virtual time)
   with an injected `TestDispatcher` — not `runBlocking` + real `delay`, and never
   `Thread.sleep`. Production code must **take its dispatcher as a parameter**;
   hardcoded `Dispatchers.IO`/`Main` can't be replaced, so the test can't control
   scheduling. Choose `StandardTestDispatcher` (manual `advanceUntilIdle()`) vs
   `UnconfinedTestDispatcher` (eager) deliberately.
+- **Don't use `runTest` to wait on real infrastructure.** Virtual time skips
+  `delay()`; it cannot wait for a Testcontainers service or an HTTP endpoint —
+  that is still **Awaitility**, in Kotlin exactly as in Java. Conversely, blocking
+  inside `runTest` stalls the virtual clock. Coroutine scheduling and eventual
+  consistency are different problems with different tools.
 - **`Flow` tests silently pass without Turbine.** Collecting to a list and
   asserting size can miss extra/late emissions. **Turbine**'s `test { }` fails on
   any unconsumed item, so over-emission is caught.
-- **Kotest vs JUnit is a choice, not a default.** JUnit 6 runs Kotlin (including
-  `suspend` test methods). Adopt Kotest for its spec styles / property testing —
-  don't assume a Kotlin project must drop JUnit.
+- **PIT reports mislead on Kotlin.** The compiler emits `Intrinsics` null checks
+  that PIT mutates, filling reports with `removed call to
+  kotlin/jvm/internal/Intrinsics::… → SURVIVED` false positives. The option that
+  suppresses them also stops mutating any statement containing a null check —
+  including real business logic. Read Kotlin mutation scores with that in mind.
 - **Data classes change what you assert.** `equals`/`hashCode` are generated, so
   assert whole-object equality (`shouldBe`, AssertJ `isEqualTo`) instead of
   field-by-field — but `copy()` is shallow, so deep structures still need care.
 ```
 
-- [ ] **Step 3: Verify present**
+- [ ] **Step 3: Verify present, attributed, and free of the stale Mockito claim**
 
-Run: `grep -n "Kotlin pitfalls\|Mockito fights Kotlin\|silently pass without Turbine" .claude/skills/jvm-testing-toolbox/references/pitfalls.md`
-Expected: three matching lines.
+Run:
+```bash
+grep -n "Kotlin pitfalls (beyond the book)\|Choose a mocker per type\|PIT reports mislead on Kotlin\|wait on real infrastructure" .claude/skills/jvm-testing-toolbox/references/pitfalls.md && \
+grep -n "mock-maker-inline\|can't mock them without" .claude/skills/jvm-testing-toolbox/references/pitfalls.md || echo "OK: no stale inline-mock-maker claim"
+```
+Expected: four matching lines from the first grep; the second prints the `OK:` line.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Fact-check the claims in this section (Currency rule)**
+
+Verified on 2026-07-29 (see "Verified facts" above). Re-check against current release
+notes if you reworded anything, especially the Mockito 5 default mock-maker claim, the
+`onBlocking` suspend-stubbing claim, and PIT's Kotlin `Intrinsics` behavior. Docs win
+over this file.
+
+- [ ] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/jvm-testing-toolbox/references/pitfalls.md
-git commit -s -m "Add Kotlin pitfalls (Mockito+final classes, coroutine time, Flow, Kotest choice)
+git commit -s -m "Add Kotlin pitfalls (mocker choice, coroutine time, Flow, PIT on Kotlin)
 
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+Marked beyond the book. Corrects the stale 'Mockito needs the inline
+mock-maker for Kotlin final classes' advice — default since Mockito 5 —
+and separates coroutine virtual time from Awaitility's wall-clock waiting.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -260,27 +334,34 @@ Expected: `OK: absent`.
 
 **Last verified: 2026-07.** Version-sensitive claims follow the Currency rule in
 `SKILL.md`. These tools are **beyond Philip Riecks' (Java-framed) book** — added
-because real JVM projects mix Java and Kotlin.
+because real JVM projects mix Java and Kotlin, frequently in one source set.
 
-Load this once routing has landed on a Kotlin-specific tool. For the quick
-decision, use the "Kotlin on the JVM" table in `SKILL.md`.
+Load this once routing has landed on a Kotlin-specific tool, **or when Java and
+Kotlin tests in the same module interfere with each other** (last section). For the
+quick decision, use the "Kotlin on the JVM" table in `SKILL.md`.
 
 ## MockK vs Mockito (+ mockito-kotlin)
 
-- **MockK** is built for Kotlin: it mocks `final` classes with no extra config,
-  and handles `object` singletons (`mockkObject`), static/top-level and extension
-  functions (`mockkStatic`), and coroutines (`coEvery { } returns …`,
-  `coVerify { }`). `relaxed = true` (or `@RelaxedMockK`) returns sensible defaults
-  so you don't stub every call; use a strict mock when unstubbed calls should fail.
-- **Mockito in Kotlin** needs the **inline mock-maker** to mock final types
-  (Kotlin's default), and its Java-oriented matchers can push `null` into
-  non-null Kotlin parameters. **mockito-kotlin** smooths this over (`whenever`,
-  `mock<T>()`, `argumentCaptor`, nullable-safe matchers).
-- **Rule:** one mocker per module. Mixing MockK and Mockito on the same types
-  causes confusing failures and doubles the mental model.
-- **When to keep Mockito:** a mostly-Java codebase where a few tests happen to be
-  Kotlin, or heavy `@MockBean`/Spring-Mockito integration. **Reach for MockK** in
-  Kotlin-first modules and anything coroutine-heavy.
+- **Mockito is more capable on Kotlin than its reputation suggests.** Since
+  **Mockito 5** the inline mock-maker is the default in `mockito-core`, so
+  final-by-default Kotlin classes mock with **no extra dependency and no
+  `mock-maker-inline` resource file**. `mockito-kotlin` adds `whenever`,
+  `mock<T>()`, `argumentCaptor`, nullable-safe matchers (its `any()` won't push
+  `null` into a non-null parameter), and `onBlocking { }` for stubbing `suspend`
+  functions.
+- **MockK earns its place** where Mockito genuinely can't be idiomatic: `object`
+  singletons (`mockkObject`), top-level and extension functions (`mockkStatic`),
+  and *suspending* answers needing real control (`coEvery { } coAnswers { … }`) —
+  `onBlocking` handles simple returns but gets awkward with delays, indefinite
+  suspension, and value-class boxing. `relaxed = true` / `@RelaxedMockK` returns
+  sensible defaults; use a strict mock when unstubbed calls should fail.
+- **The rule is one mocker per *type*, not per module.** Two mockers on the same
+  type causes confusing failures. Two mockers in the same *module* — Mockito in the
+  Java tests, MockK in the Kotlin ones — is a normal state for a mixed source set.
+  It costs a second mental model; pay that deliberately rather than by accident.
+- **When to stay on Mockito:** a mostly-Java module where a few tests happen to be
+  Kotlin, or heavy Spring `@MockitoBean` integration. **Reach for MockK** in
+  Kotlin-first or coroutine-heavy code.
 
 ## Coroutine testing: kotlinx-coroutines-test
 
@@ -298,6 +379,11 @@ decision, use the "Kotlin on the JVM" table in `SKILL.md`.
   so scheduling can't be controlled. For `Dispatchers.Main` in unit tests, set
   `Dispatchers.setMain(testDispatcher)` in setup and `Dispatchers.resetMain()` in
   teardown.
+- **Virtual time is not a waiting mechanism.** `runTest` can skip a `delay()` your
+  own code issues; it cannot wait for a Testcontainers service, an HTTP endpoint, or
+  a message to land on a broker. Those stay **Awaitility**, in Kotlin as in Java.
+  Blocking inside `runTest` to bridge the gap stalls the virtual clock — the test
+  hangs or silently takes real time.
 
 ## Flow testing: Turbine
 
@@ -308,42 +394,76 @@ decision, use the "Kotlin on the JVM" table in `SKILL.md`.
 - For infinite/hot flows, end with `cancelAndIgnoreRemainingEvents()`.
 - Combine with virtual time (`runTest`) when the flow uses `delay`/`debounce`.
 
-## Kotest — when it earns its place
+## Property testing: Kotest Property and jqwik
 
-- **Spec styles** (`StringSpec`, `FunSpec`, `BehaviorSpec`, `DescribeSpec`) give
-  BDD-ish structure without JUnit's annotations.
-- **Property testing** (`checkAll`, `Arb` generators) is first-class — often the
-  main reason to bring Kotest into an otherwise-JUnit project.
-- **Assertions are separable:** add only `kotest-assertions-core` for
-  `shouldBe`/`shouldContain`/`shouldThrow` and keep running under JUnit.
-- **Don't reflexively replace JUnit** — JUnit 6 already runs Kotlin (and `suspend`
-  test methods). Adopt Kotest for spec styles or property testing, not as a
-  default swap.
+- **The engine question decides this one.** `kotest-property` is a plain library:
+  `checkAll { a, b -> … }` runs inside an ordinary Jupiter `@Test`, so the module
+  keeps a single test engine. **jqwik registers its own JUnit Platform engine** — it
+  coexists with Jupiter (declare both), but it *is* a second engine, with occasional
+  IDE test-discovery quirks when several are present.
+- **So:** Kotlin-side properties cost nothing structurally; Java-side properties cost
+  a second engine. That is the one place the one-engine rule carries a price, and
+  it's worth paying when the invariants genuinely live on the Java side.
+- Both shrink a failure to a minimal counterexample — the reason property testing
+  beats hand-rolled random input.
+- `kotest-assertions-core` is separable the same way (`shouldBe`, `shouldThrow`) if
+  you want Kotlin-idiomatic assertions without adopting the Kotest engine.
 
-## Konsist — Kotlin architecture rules
+## Mixed source set: Java and Kotlin in one module
 
-- Parses **Kotlin source** via the compiler, so rules can target top-level
-  functions, extension functions, visibility, and package layout that ArchUnit
-  (which reads **bytecode**) can't always see.
-- Rules run as ordinary JUnit/Kotest tests, same as ArchUnit.
-- **ArchUnit vs Konsist:** ArchUnit is stronger for JVM-level layering/cycles
-  across a mixed Java+Kotlin codebase; Konsist for Kotlin-idiom rules (e.g.
-  "every use case is an `internal` class", "no top-level mutable state"). They
-  coexist.
+These bite only when both languages compile into the same source set — the case this
+skill treats as primary.
+
+- **`@BeforeAll` / `@AfterAll` / `@MethodSource` need `@JvmStatic`.** JUnit requires
+  them to be static; Kotlin has no `static`, so they belong in a `companion object`
+  marked `@JvmStatic`. The alternative is annotating the class
+  `@TestInstance(Lifecycle.PER_CLASS)`, which removes the static requirement — usually
+  cleaner in Kotlin, but it shares one instance across every test in the class, so
+  mutable state now leaks between them.
+- **Platform types quietly weaken null assertions.** A Java method returning `String`
+  appears to Kotlin as `String!` — nullability unknown — so the compiler neither forces
+  a check nor flags a redundant one. Assertions against Java-returned values can look
+  null-safe while proving nothing. Annotate the Java side (JSpecify / `@Nullable`) or
+  assert explicitly.
+- **`internal` and test friend-paths.** Kotlin `internal` compiles to `public` with a
+  mangled name, so same-module Java test code can reach it. Kotlin test code can too —
+  but only because the build marks the test compilation a *friend* of main. The Gradle
+  Kotlin plugin does this for the standard `test` source set; a custom source set
+  won't get it automatically, and `internal` members will look mysteriously
+  inaccessible.
+- **JUnit 6 runs `suspend` test functions natively** (Java 17+ / Kotlin 2.2+), so the
+  test method needs no `runBlocking` wrapper. You still want `runTest` for virtual time.
+- **Backtick test names are JVM-legal but not portable.** Fine on the JVM; some tooling
+  (and Android) rejects the characters. `@DisplayName` is the portable equivalent and
+  reads the same from both languages.
+- **Mutation scores aren't comparable across the two languages** in one module — see
+  the PIT bullet in `pitfalls.md`.
 ```
 
 - [ ] **Step 3: Verify the file exists with all five headings**
 
-Run: `grep -c "^## " .claude/skills/jvm-testing-toolbox/references/kotlin.md`
-Expected: `5` (MockK vs Mockito, Coroutine testing, Flow testing, Kotest, Konsist).
+Run: `grep -n "^## " .claude/skills/jvm-testing-toolbox/references/kotlin.md`
+Expected: `5` headings — MockK vs Mockito, Coroutine testing, Flow testing, Property
+testing, Mixed source set. Confirm no Konsist heading.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Fact-check the claims in this file (Currency rule)**
+
+Verified on 2026-07-29 (see "Verified facts" above). If you reworded anything, re-check
+against current docs — particularly the Mockito 5 mock-maker default, `onBlocking`,
+jqwik's engine registration, JUnit 6 `suspend` support, and Kotlin test friend-paths.
+Docs win over this file; if one disagrees, change the file and say so.
+
+- [ ] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/jvm-testing-toolbox/references/kotlin.md
-git commit -s -m "Add references/kotlin.md depth notes (MockK, coroutines, Flow, Kotest, Konsist)
+git commit -s -m "Add references/kotlin.md (Kotlin tool depth + mixed source-set interop)
 
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+MockK vs Mockito, coroutine virtual time, Flow, property testing, and the
+Java/Kotlin interop traps that only appear in a shared source set:
+@JvmStatic lifecycle methods, platform types, internal friend-paths.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -372,16 +492,20 @@ Change:
 ```
 to:
 ```
-(JUnit 5/6, Mockito, AssertJ; MockK and Kotest on Kotlin) is already known.
+(JUnit 5/6, Mockito, AssertJ, MockK) is already known.
 ```
+This keeps the "router, not a tutorial" identity intact: basic usage of the named
+tools is assumed, and `references/kotlin.md` carries **tie-breakers and interop
+traps**, not usage walkthroughs.
 
 - [ ] **Step 3: Add the "beyond the book" note to the source paragraph**
 
 After the sentence ending `github.com/rieckpil/java-testing-ecosystem`.` add a new sentence in the same paragraph:
 ```
- Kotlin-native tools (MockK, Kotest, kotlinx-coroutines-test, Turbine, Konsist)
-are additions **beyond the book**, included because real JVM projects mix Java
-and Kotlin.
+ Kotlin-native tools (MockK, kotlinx-coroutines-test, Turbine) and the
+property-testing entries (jqwik, Kotest Property) are additions **beyond the
+book**, included because real JVM projects mix Java and Kotlin — often in one
+source set.
 ```
 
 - [ ] **Step 4: Add the language-agnostic framing to "How to use this skill"**
@@ -391,39 +515,40 @@ After the numbered list in `## How to use this skill` (after the "Only pull deep
 
 **Java or Kotlin?** These tables apply to both. Where Kotlin has an idiomatic
 swap, the row's note names it (**Kotlin:** …); Kotlin-only concerns (coroutines,
-`Flow`) are in the **Kotlin on the JVM** section below. For Kotlin depth, open
-`references/kotlin.md`.
+`Flow`) are in the **Kotlin on the JVM** section below. For Kotlin depth and the
+Java/Kotlin interop traps, open `references/kotlin.md`.
+
+**One engine.** In a mixed Java+Kotlin module, run **JUnit Jupiter as the only
+test engine** — one runner, one report, one CI config. Libraries may differ per
+file; engines should not. That is why Kotest appears here as an assertion and
+property-testing *library* rather than a framework, and why jqwik's own Platform
+engine is flagged as a cost where it appears.
 ```
 
 - [ ] **Step 5: Inline swap — Mockito row (Mocking & stubbing table)**
 
 In the Mockito row, append to the tie-breaker/note cell (after "…`thenAnswer`, `verify`."):
 ```
- **Kotlin:** prefer **MockK** (final-by-default classes, `object`s, extension fns, and coroutines via `coEvery`/`coVerify`); Mockito needs `mockito-kotlin` + the inline mock-maker.
+ **Kotlin:** Mockito 5 mocks Kotlin's final-by-default classes out of the box (the inline mock-maker is the default), and `mockito-kotlin` adds null-safe matchers plus `onBlocking` for `suspend` functions. Reach for **MockK** for `object`s, extension/top-level fns, or suspending answers needing real control. Never two mockers on the same type. **Beyond the book.**
 ```
 
-- [ ] **Step 6: Inline swap — Test frameworks table (add Kotest row)**
-
-Add a new row at the end of the "Test frameworks" table, after the Spock row:
-```markdown
-| Kotlin-native spec styles or property testing | Kotest | Kotlin framework: `StringSpec`/`BehaviorSpec`, `checkAll` property testing, `shouldBe` matchers. Optional — JUnit 6 + AssertJ run Kotlin fine. **Beyond the book.** |
-```
-
-- [ ] **Step 7: Inline swap — AssertJ row (Assertion libraries table)**
+- [ ] **Step 6: Inline swap — AssertJ row (Assertion libraries table)**
 
 In the AssertJ row, append to the note cell (after "…custom `AbstractAssert` for domain types."):
 ```
- **Kotlin:** Kotest matchers (`x shouldBe y`) / Strikt are idiomatic alternatives; AssertJ still works.
+ **Kotlin:** `kotest-assertions-core` (`x shouldBe y`) is an idiomatic alternative that needs no Kotest engine; AssertJ itself works unchanged from Kotlin.
 ```
 
-- [ ] **Step 8: Inline swap — ArchUnit row (Architecture & test quality table)**
+- [ ] **Step 7: New row — property-based testing (Architecture & test quality table)**
 
-In the ArchUnit row, append to the note cell (after "…must take a `Clock`\"."):
-```
- **Kotlin:** **Konsist** parses Kotlin source, so it catches top-level/extension-fn rules ArchUnit's bytecode view misses.
+Property testing has no row today, in either language. Add one immediately after the Instancio row:
+```markdown
+| Generate inputs and assert an invariant holds | **jqwik** (Java) / **Kotest Property** (Kotlin) | Both shrink a failure to a minimal counterexample. `kotest-property`'s `checkAll` runs inside a Jupiter `@Test`, keeping one engine; **jqwik registers its own Platform engine** — supported alongside Jupiter, but it is a second engine. **Beyond the book.** |
 ```
 
-- [ ] **Step 9: Add the "Kotlin on the JVM" section**
+Note: **no ArchUnit swap.** ArchUnit reads bytecode and already runs against Kotlin; Konsist is out of scope per Global Constraints.
+
+- [ ] **Step 8: Add the "Kotlin on the JVM" section**
 
 Immediately before `## Cross-cutting reminders`, insert:
 ```markdown
@@ -431,53 +556,58 @@ Immediately before `## Cross-cutting reminders`, insert:
 
 Most tables above apply to Kotlin unchanged. These are the Kotlin-**specific**
 choices — a swap for a shared concern, plus axes with no Java equivalent. All are
-**beyond Riecks' (Java-framed) book**; depth in `references/kotlin.md`.
+**beyond Riecks' (Java-framed) book**; depth and the mixed-source-set interop
+traps are in `references/kotlin.md`.
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Mock in idiomatic Kotlin | **MockK** | Final-by-default classes, `object`s, extension/top-level fns, and coroutines (`coEvery`/`coVerify`) native. Mockito needs `mockito-kotlin` + inline mock-maker. Don't mix the two mockers in one module. |
-| Test `suspend` functions / coroutine logic | **kotlinx-coroutines-test** | `runTest { }` drives virtual time; advance with `advanceUntilIdle()` / `runCurrent()`. Inject dispatchers — don't hardcode `Dispatchers.IO` — so a `TestDispatcher` can replace them. |
+| Mock a Kotlin `object`, extension fn, or suspending answer | **MockK** | `mockkObject`, `mockkStatic`, `coEvery { } coAnswers { }`. For ordinary classes Mockito 5 + `mockito-kotlin` is fine — final classes mock by default, `onBlocking` stubs `suspend` fns. Never two mockers on the same type. |
+| Test `suspend` functions / coroutine scheduling | **kotlinx-coroutines-test** | `runTest { }` drives virtual time; advance with `advanceUntilIdle()` / `runCurrent()`. Inject dispatchers — don't hardcode `Dispatchers.IO`. **Not** for waiting on real infrastructure — that stays Awaitility. |
 | Assert on values a `Flow` emits | **Turbine** | `flow.test { awaitItem(); awaitComplete() }` — fails on unconsumed items, unlike a plain `toList()` collect. Pairs with any assertion lib. |
-| Framework / assertions, Kotlin-native | **Kotest** | Spec styles + property testing + `shouldBe`. Optional — JUnit 6 + AssertJ work fine in Kotlin. |
-| Kotlin-aware architecture rules | **Konsist** | Understands Kotlin source (top-level/extension fns) ArchUnit can miss; coexists with ArchUnit. |
+| Fix Java/Kotlin interop in one source set | `references/kotlin.md` | `@JvmStatic` for `@BeforeAll`/`@MethodSource`, platform types weakening null assertions, `internal` friend-paths, PIT noise on Kotlin null checks. |
 
 ```
 
-- [ ] **Step 10: Add Kotlin cross-cutting reminders**
+- [ ] **Step 9: Add Kotlin cross-cutting reminders**
 
-In `## Cross-cutting reminders`, add two bullets (after the "Awaitility over `Thread.sleep`" bullet):
+In `## Cross-cutting reminders`, add three bullets (after the "Awaitility over `Thread.sleep`" bullet):
 ```markdown
-- **Kotlin: MockK over Mockito** for `object`s, final classes, extension fns, and
-  coroutines — or add `mockito-kotlin` + the inline mock-maker. Don't mix the two
-  mockers in one module.
-- **Kotlin coroutines: `runTest` + an injected `TestDispatcher`**, never real
-  delays or `Thread.sleep`; use **Turbine** for `Flow`.
+- **One engine in a mixed module** — JUnit Jupiter runs both languages. Bring Kotest
+  in as a library (assertions, property testing), not as a second engine.
+- **Kotlin mocking: choose per type, not per module.** Mockito 5 + `mockito-kotlin`
+  covers most Kotlin (final classes mock by default; `onBlocking` stubs `suspend`
+  fns); **MockK** for `object`s, extension fns, and suspending answers. Never two
+  mockers on the same type.
+- **Kotlin coroutines: `runTest` + an injected `TestDispatcher`**, never real delays
+  or `Thread.sleep`; **Turbine** for `Flow`. Waiting on real infrastructure is still
+  **Awaitility** — virtual time cannot wait on a container.
 ```
 
-- [ ] **Step 11: Verify all Kotlin routing content is present**
+- [ ] **Step 10: Verify Kotlin routing content is present, and Konsist is absent**
 
 Run:
 ```bash
-grep -n "Kotlin on the JVM\|Java or Kotlin?\|MockK\|Kotest\|kotlinx-coroutines-test\|Turbine\|Konsist\|references/kotlin.md" .claude/skills/jvm-testing-toolbox/SKILL.md
+grep -n "Kotlin on the JVM\|Java or Kotlin?\|One engine\|MockK\|Kotest Property\|kotest-assertions-core\|kotlinx-coroutines-test\|Turbine\|jqwik\|references/kotlin.md" .claude/skills/jvm-testing-toolbox/SKILL.md && \
+grep -n "Konsist" .claude/skills/jvm-testing-toolbox/SKILL.md || echo "OK: no Konsist"
 ```
-Expected: matches for the new section heading, the framing line, all five tool names, and the `references/kotlin.md` link.
+Expected: matches for the section heading, both framing lines, every tool name, and the `references/kotlin.md` link; the second grep prints the `OK:` line.
 
-- [ ] **Step 12: Verify table integrity (no broken Markdown rows)**
+- [ ] **Step 11: Verify table integrity (no broken Markdown rows)**
 
 Read the "Test frameworks", "Mocking & stubbing", "Assertion libraries", "Architecture & test quality", and new "Kotlin on the JVM" tables. Confirm every row has the same pipe-column count as its header (3 columns). Fix any row that doesn't.
 
-- [ ] **Step 13: Commit**
+- [ ] **Step 12: Commit**
 
 ```bash
 git add .claude/skills/jvm-testing-toolbox/SKILL.md
-git commit -s -m "Make SKILL.md router Kotlin-aware (framing, inline swaps, Kotlin section)
+git commit -s -m "Make SKILL.md router Kotlin-aware (one-engine rule, swaps, Kotlin section)
 
-Language-agnostic framing + inline Kotlin swaps on the rows that differ
-(Mockito->MockK, ArchUnit->Konsist, Kotest as framework/assertion option),
-a dedicated 'Kotlin on the JVM' table for coroutine/Flow testing, and
-Kotlin cross-cutting reminders. Links to references/kotlin.md.
+Language-agnostic framing plus an explicit one-engine rule; corrected
+Mockito/MockK guidance; a new property-testing row (jqwik / Kotest
+Property) that flags jqwik's second Platform engine as a cost; a
+'Kotlin on the JVM' table for coroutine/Flow testing and interop.
 
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -536,44 +666,76 @@ Replace the tree block with:
 └── references/
     ├── tool-cards.md        # one card per tool: purpose + the one high-signal note
     ├── pitfalls.md          # cross-cutting gotchas + tie-breaker rationale
-    └── kotlin.md            # Kotlin depth: MockK, coroutines, Flow, Kotest, Konsist
+    └── kotlin.md            # Kotlin depth + Java/Kotlin interop in one source set
 ```
 
-- [ ] **Step 5: Add a Kotlin row to the Coverage table**
+- [ ] **Step 5: Add coverage rows for the new tools**
 
-After the "Architecture & quality" row, add:
+After the "Architecture & quality" row, add two rows. Use **plain category cells** —
+every other row is a bare category name, and the "beyond the book" caveat belongs in
+prose below the table (the convention commit `63c40cf` established when it added
+JUnit 6):
 ```markdown
-| Kotlin (beyond the book) | MockK, Kotest, kotlinx-coroutines-test, Turbine, Konsist |
+| Kotlin | MockK, kotlinx-coroutines-test, Turbine |
+| Property-based | jqwik, Kotest Property |
 ```
 Then, after the coverage table's trailing paragraph about JUnit 6, add:
 ```markdown
 
-Kotlin-native tools (MockK, Kotest, kotlinx-coroutines-test, Turbine, Konsist)
-are **additions beyond the book's 30 Java tools**, because real JVM projects
-frequently mix Java and Kotlin.
+The Kotlin tools (MockK, kotlinx-coroutines-test, Turbine) and the property-testing
+entries (jqwik, Kotest Property) are **additions beyond the book's 30 Java tools**,
+because real JVM projects frequently mix Java and Kotlin — often in one source set.
 ```
 
-- [ ] **Step 6: Update the Usage path**
+- [ ] **Step 6: Correct the `## Credit` section**
+
+This is required, not optional: the Credit section currently asserts
+
+> All 30 tools, the categorization, the selection guidance, and the pitfalls are
+> distilled from that book.
+
+which becomes **false** once Tasks 2–5 add non-book tools and pitfalls — in a repo
+whose entire premise is accurate attribution. Replace that sentence with:
+```markdown
+The 30 Java tools, the categorization, the selection guidance, and the Java
+pitfalls are distilled from that book. The Kotlin coverage (MockK,
+kotlinx-coroutines-test, Turbine), the property-testing entries (jqwik, Kotest
+Property), and the mixed Java/Kotlin interop notes are **additions beyond the
+book** — not Philip's work, and not to be attributed to him. Please support the
+original work:
+```
+Leave the rest of the Credit section (the book blockquote, the links, the
+"no reproduction of the book's prose" paragraph) untouched.
+
+- [ ] **Step 7: Update the Usage path**
 
 Change `Drop the `.claude/skills/java-testing-toolbox/` directory` to
 `Drop the `.claude/skills/jvm-testing-toolbox/` directory`.
 
-- [ ] **Step 7: Verify README updated and no stale slug except the rename note**
+- [ ] **Step 8: Verify README updated, credit corrected, no stale slug**
 
 Run:
 ```bash
-grep -n "jvm-testing-toolbox\|Renamed from\|Kotlin (beyond the book)\|kotlin.md" README.md && \
+grep -n "jvm-testing-toolbox\|Renamed from\|| Kotlin |\|| Property-based |\|kotlin.md" README.md && \
+grep -n "additions beyond the" README.md && \
+grep -n "All 30 tools" README.md || echo "OK: stale credit claim removed" && \
 grep -n "java-testing-toolbox" README.md
 ```
-Expected: new-slug lines present; the only `java-testing-toolbox` hit is inside the "Renamed from" note.
+Expected: new-slug and coverage lines present; the corrected credit sentence present;
+`OK: stale credit claim removed` printed; the only `java-testing-toolbox` hit is inside
+the "Renamed from" note.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add README.md
 git commit -s -m "Update README for jvm-testing-toolbox rename + Kotlin coverage
 
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+Corrects the Credit section, which claimed every tool and pitfall came
+from Philip Riecks' book — no longer true once Kotlin and property-testing
+coverage is added. Attribution for the Java core is unchanged.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -607,31 +769,55 @@ Expected: `name: jvm-testing-toolbox`; description present. Confirm the descript
 Run: `ls .claude/skills/jvm-testing-toolbox/references/`
 Expected: `tool-cards.md  pitfalls.md  kotlin.md`. Confirm `SKILL.md` references each by the name it uses.
 
-- [ ] **Step 4: Routing sanity (manual read)**
+- [ ] **Step 4: Scope sweep — Konsist and Kotest-as-framework are absent**
 
-Read `SKILL.md` top-to-bottom once. Confirm: (a) a Java-only reader sees no Kotlin noise except the ~4 annotated rows + the Kotlin section; (b) a Kotlin prompt ("mock a final Kotlin class", "test a `suspend` function", "test a `Flow`") has an obvious landing row; (c) every Kotlin tool named in a table has a matching card in `tool-cards.md`.
+Run:
+```bash
+grep -rn "Konsist" .claude/skills/ README.md || echo "OK: no Konsist"
+grep -rn "StringSpec\|BehaviorSpec\|FunSpec\|spec styles" .claude/skills/ || echo "OK: no Kotest spec styles"
+```
+Expected: both print their `OK:` line. Konsist is out of scope; Kotest enters as a library only (assertions + property testing) under the one-engine rule.
 
-- [ ] **Step 5: Push the branch (updates PR #1)**
+- [ ] **Step 5: Currency check — every new version-sensitive claim was actually verified**
+
+Confirm each content task's fact-check step was performed rather than skipped. The `Last verified: 2026-07` stamp now covers Kotlin and property-testing claims, so it must not be a promise nobody kept. Spot-check at minimum: Mockito's default mock-maker, `mockito-kotlin`'s `onBlocking`, jqwik's own Platform engine, Kotest module separability, JUnit 6 `suspend` support, and PIT's Kotlin `Intrinsics` behavior. If a current doc disagrees with a shipped line, change the line and say so.
+
+- [ ] **Step 6: Attribution check**
+
+Run: `grep -n "All 30 tools" README.md || echo "OK: credit corrected"`
+Expected: prints the `OK:` line. Then confirm **every** place the new tools appear signals "beyond the book" — SKILL.md's source paragraph, its Kotlin section intro, the annotated rows, the `tool-cards.md` heading, the `pitfalls.md` heading, `kotlin.md`'s intro, and README's prose *and* Credit section. Nothing may imply the book covers Kotlin or property testing.
+
+- [ ] **Step 7: Routing sanity (manual read)**
+
+Read `SKILL.md` top-to-bottom once. Confirm: (a) a Java-only reader sees no Kotlin noise except the annotated rows + the Kotlin section; (b) a Kotlin prompt ("mock a Kotlin `object`", "test a `suspend` function", "test a `Flow`") has an obvious landing row; (c) a mixed-source-set prompt ("`@BeforeAll` doesn't run in my Kotlin test") routes to `references/kotlin.md`; (d) every tool named in a table has a matching card in `tool-cards.md`.
+
+- [ ] **Step 8: Push the branch (updates PR #1)**
 
 ```bash
 git push
 ```
-Then print the PR URL: `https://github.com/adityamparikh/java-testing-skill/pull/1`
+Then print the PR URL as plain text on its own line:
+`https://github.com/adityamparikh/java-testing-skill/pull/1`
 
 ## Self-Review
 
 **Spec coverage** (checked against `docs/superpowers/specs/2026-07-23-jvm-testing-kotlin-overlay-design.md`):
 - Frame shared tables language-agnostic → Task 5 Step 4. ✅
-- Inline swaps on Mockito / ArchUnit / frameworks+assertions → Task 5 Steps 5–8. ✅
-- New "Kotlin on the JVM" section (coroutines, Flow, MockK, Konsist) → Task 5 Step 9. ✅
-- New `references/kotlin.md` → Task 4. ✅
+- One-engine rule stated explicitly → Task 5 Step 4 (framing) + Step 9 (reminder). ✅
+- Inline swaps on Mockito + AssertJ; **no ArchUnit swap** (Konsist out of scope) → Task 5 Steps 5–6. ✅
+- Property-testing row (jqwik / Kotest Property, jqwik's engine flagged) → Task 5 Step 7. ✅
+- New "Kotlin on the JVM" section (MockK, coroutines, Flow, interop pointer) → Task 5 Step 8. ✅
+- New `references/kotlin.md`, incl. the mixed-source-set interop half → Task 4. ✅
 - Rename dir + name + description + old-name note → Task 1 + Task 6 Step 2. ✅
-- tool-cards additions (MockK, Kotest, coroutines-test, Turbine, Konsist) → Task 2. ✅
-- pitfalls additions → Task 3. ✅
-- README name + coverage → Task 6. ✅
-- Decisions locked: coroutine depth (route + gotcha in tables, nuance in kotlin.md) → Tasks 4/5; "beyond the book" framing → Tasks 2,4,5,6. ✅
-- Out-of-scope respected: no swap column, no per-language split, no build-tool guidance, Strikt/Kluent only one-line mentions → confirmed across tasks. ✅
+- tool-cards additions (MockK, coroutines-test, Turbine, Kotest Property, jqwik) → Task 2. ✅
+- pitfalls additions (incl. PIT-on-Kotlin, mocker choice, runTest vs Awaitility) → Task 3. ✅
+- README name + coverage + **Credit correction** → Task 6 Steps 1–6. ✅
+- Decisions locked: coroutine depth (route + gotcha in tables, nuance in kotlin.md) → Tasks 4/5; **"beyond the book" framing → Tasks 2, 3, 4, 5, 6** (Task 3 was previously missing from this list and from its own section heading — fixed). ✅
+- Currency: a fact-check step now ends every content task (2, 3, 4) with a sweep in Task 7 Step 5; verified facts recorded up front so they aren't re-derived. ✅
+- Out-of-scope respected: no swap column, no per-language split, no Konsist, no Kotest spec styles, no Spring Kotlin wiring, no Android, no build-tool guidance. ✅
 
 **Placeholder scan:** No TBD/TODO; every edit shows literal content and an anchor. ✅
 
-**Type/name consistency:** Slug `jvm-testing-toolbox` used identically in Tasks 1, 6, 7; section heading `Kotlin on the JVM` produced in Task 5 Step 9 and referenced in Task 5 Steps 4/10 and README; file `references/kotlin.md` created in Task 4 and linked in Task 5 Step 4 + README Step 4. ✅
+**Correctness scan:** The stale "Mockito needs the inline mock-maker for Kotlin final classes" claim (Mockito 4-era; default since Mockito 5) is removed from the spec, Task 3, Task 4, and Task 5, and replaced with the verified position. "Mockito can't stub `suspend` functions" is likewise avoided — `mockito-kotlin`'s `onBlocking` can; MockK's advantage is ergonomics and advanced cases. ✅
+
+**Type/name consistency:** Slug `jvm-testing-toolbox` used identically in Tasks 1, 6, 7; section heading `Kotlin on the JVM` produced in Task 5 Step 8 and referenced in Task 5 Step 4; file `references/kotlin.md` created in Task 4 and linked in Task 5 Steps 4/8 + Task 6 Step 4. Commit trailer is `Claude Opus 5 (1M context)` in every task. ✅
