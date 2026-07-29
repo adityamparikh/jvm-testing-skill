@@ -668,21 +668,23 @@ Replace the tree block with:
     └── kotlin.md            # Kotlin depth + Java/Kotlin interop in one source set
 ```
 
-- [ ] **Step 5: Add coverage rows for the new tools**
+- [ ] **Step 5: Add a Kotlin coverage group**
 
-After the "Architecture & quality" row, add two rows. Use **plain category cells** —
-every other row is a bare category name, and the "beyond the book" caveat belongs in
-prose below the table (the convention commit `63c40cf` established when it added
-JUnit 6):
-```markdown
-| Kotlin | MockK, kotlinx-coroutines-test, Turbine, Kotest Property |
-```
-Then, after the coverage table's trailing paragraph about JUnit 6, add:
+The Coverage section has two groups — "**Already on your classpath**" and "**Reached
+for constantly**", each a `| Problem | Tool |` table. Add a third group immediately
+after the second table and before `### What was cut, and why`:
 ```markdown
 
-The Kotlin tools (MockK, kotlinx-coroutines-test, Turbine, Kotest Property) are
-**additions beyond the book's Java tools**, because real JVM projects frequently mix
-Java and Kotlin — often in one source set.
+**If the module has Kotlin** — additions beyond the book, because real JVM projects
+mix the two languages, often in one source set:
+
+| Problem | Tool |
+|---|---|
+| Mock a Kotlin `object`, extension fn, or suspending answer | MockK |
+| Test `suspend` functions / coroutine scheduling | kotlinx-coroutines-test |
+| Assert on values a `Flow` emits | Turbine |
+| Property-based testing | Kotest Property |
+| Java/Kotlin interop in one source set | `references/kotlin.md` |
 ```
 
 - [ ] **Step 6: Correct the `## Credit` section**
@@ -708,14 +710,12 @@ Change `Drop the `.claude/skills/java-testing-toolbox/` directory` to
 
 Run:
 ```bash
-grep -n "jvm-testing-toolbox\|Renamed from\|| Kotlin |\|| Property-based |\|kotlin.md" README.md && \
-grep -n "additions beyond the" README.md && \
-grep -n "All 30 tools" README.md || echo "OK: stale credit claim removed" && \
+grep -n "jvm-testing-toolbox\|Renamed from\|If the module has Kotlin\|MockK\|kotlin.md" README.md && \
+grep -n "additions beyond the book" README.md && \
 grep -n "java-testing-toolbox" README.md
 ```
-Expected: new-slug and coverage lines present; the corrected credit sentence present;
-`OK: stale credit claim removed` printed; the only `java-testing-toolbox` hit is inside
-the "Renamed from" note.
+Expected: new-slug line, the Kotlin coverage group, and the Credit addition all
+present; the only `java-testing-toolbox` hit is inside the "Renamed from" note.
 
 - [ ] **Step 9: Commit**
 

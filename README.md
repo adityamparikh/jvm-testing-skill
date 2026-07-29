@@ -3,9 +3,9 @@
 An [agent skill](https://code.claude.com/docs/en/skills) that helps AI coding
 tools (Claude Code, Cursor, Copilot, …) **pick the right Java/JVM testing tool
 for a given challenge** — the right framework, assertion library, mocking
-approach, or HTTP / infrastructure / UI / performance / contract / architecture
-tool — with the selection tie-breakers and pitfalls that generic model knowledge
-tends to miss.
+approach, or HTTP / infrastructure / browser / BDD / architecture tool — with
+the selection tie-breakers and pitfalls that generic model knowledge tends to
+miss.
 
 It's a **router**, not a tutorial: it deliberately does *not* re-teach things an
 LLM already knows (basic JUnit 5 / Mockito / AssertJ usage). Its value is the
