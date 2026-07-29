@@ -493,6 +493,7 @@ to:
 ```
 (JUnit 5/6, Mockito, AssertJ, MockK) is already known.
 ```
+(The line currently reads `(JUnit 5/6, Mockito, AssertJ)` — add `, MockK`.)
 This keeps the "router, not a tutorial" identity intact: basic usage of the named
 tools is assumed, and `references/kotlin.md` carries **tie-breakers and interop
 traps**, not usage walkthroughs.
@@ -525,9 +526,9 @@ second engine appears here at all.
 
 - [ ] **Step 5: Inline swap — Mockito row (Mocking & stubbing table)**
 
-In the Mockito row, append to the tie-breaker/note cell (after "…`thenAnswer`, `verify`."):
+In the Mockito row, append to the tie-breaker/note cell (after "…final classes and statics mock with no extra dependency."):
 ```
- **Kotlin:** Mockito 5 mocks Kotlin's final-by-default classes out of the box (the inline mock-maker is the default), and `mockito-kotlin` adds null-safe matchers plus `onBlocking` for `suspend` functions. Reach for **MockK** for `object`s, extension/top-level fns, or suspending answers needing real control. Never two mockers on the same type. **Beyond the book.**
+ **Kotlin:** that also covers Kotlin's final-by-default classes, and `mockito-kotlin` adds null-safe matchers plus `onBlocking` for `suspend` functions. Reach for **MockK** for `object`s, extension/top-level fns, or suspending answers needing real control. Never two mockers on the same type. **Beyond the book.**
 ```
 
 - [ ] **Step 6: Inline swap — AssertJ row (Assertion libraries table)**

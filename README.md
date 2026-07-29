@@ -48,37 +48,59 @@ Packaged and maintained by [Aditya Parikh (@adityamparikh)](https://github.com/a
 
 ## Coverage
 
-The book's tools, grouped by problem:
+Deliberately small, in two groups.
 
-| Category | Tools |
+**Already on your classpath** — everything `spring-boot-starter-test` pulls in.
+You use these whether or not you choose them, so the skill is about using them
+*correctly*, not about adopting them:
+
+| Problem | Tool |
 |---|---|
-| Test frameworks | JUnit 6, JUnit 5, JUnit 4, TestNG, Spock |
-| Assertion libraries | AssertJ, Hamcrest, JsonPath, JSONAssert, XMLUnit |
-| Mocking | Mockito (+ Spock mocks) |
-| HTTP mocking | WireMock, MockWebServer |
-| Real infrastructure | Testcontainers, LocalStack, GreenMail, MicroShed Testing |
-| Browser / UI | Selenide, Selenium |
-| REST API | REST Assured |
-| Async | Awaitility |
-| Performance | Gatling, ApacheBench, JMH, JfrUnit |
-| Behavior-driven | JGiven (+ Spock) |
-| Contract testing | Pact |
-| Architecture & quality | ArchUnit, Instancio, PIT mutation testing |
+| Test framework | JUnit 6 / 5 / 4 |
+| Fluent assertions | AssertJ |
+| Matcher assertions (you meet it via MockMvc) | Hamcrest |
+| Mocking | Mockito |
+| Compare a whole JSON document | JSONassert |
+| Extract a value from JSON | JsonPath |
+| Asynchronous code | Awaitility |
 
-The skill tracks the ecosystem where it has moved since the book — e.g. JUnit 6
-(GA September 2025) is covered as the current default, with its migration
-pitfalls, on top of the book's JUnit 5 guidance.
+**Reached for constantly** — not in the starter, but the standing answer to a
+problem most JVM teams hit:
 
-It also **curates rather than mirrors** the book's list. A survey benefits from
-breadth; a router is diluted by it, because every extra destination is another
-confident wrong turn an agent can take. So:
+| Problem | Tool |
+|---|---|
+| Any dependency that ships as a container | Testcontainers |
+| Mock an external HTTP API | WireMock |
+| Black-box test a REST API | REST Assured |
+| Browser / end-to-end | Playwright |
+| Gherkin specs read by non-engineers | Cucumber |
+| Architecture rules as tests | ArchUnit |
+| Generate test data | Instancio |
+| Judge test quality beyond coverage | PIT |
 
-- **Diffblue Cover is omitted.** This skill is read by AI coding agents — routing
-  an AI agent to an AI test generator is circular. (The tool is fine and still
-  maintained; it just has no job here.)
-- **GreenMail and MicroShed Testing are marked _Conditional_** — reach for them only
-  when that exact narrow problem is yours (you send mail; you run Jakarta EE /
-  MicroProfile), never as a default or by analogy.
+### What was cut, and why
+
+A survey benefits from breadth; a router is diluted by it, because every extra
+destination is one more confident wrong turn an agent can take. The skill tracks
+the ecosystem where it has moved since the book — JUnit 6 (GA September 2025) is
+the current default, Playwright and Cucumber are additions — and drops what no
+longer earns a slot:
+
+| Cut | Reason |
+|---|---|
+| JfrUnit | Effectively abandoned — last release December 2021, still `1.0.0.Alpha2`. |
+| Diffblue Cover | Circular: this skill is read by AI coding agents, so routing an agent to an AI test generator is a no-op. The tool itself is fine and maintained. |
+| Gatling, JMH, ApacheBench | Load testing and microbenchmarking are a separate discipline with their own decision tree. Out of scope rather than badly served. |
+| Selenide, Selenium | Folded into the Playwright row as the "you already have a Selenium suite" tie-breaker. |
+| MockWebServer | WireMock is the default; a second HTTP-stub option added choice without adding capability. |
+| LocalStack, GreenMail, MicroShed Testing | Narrow answers to problems Testcontainers now covers generically — any image, any wait strategy. |
+| TestNG, Spock | JUnit 5/6 absorbed the differentiators (`@ParameterizedTest`, parallel execution); Spock additionally requires adopting Groovy, which is a language decision, not a library one. |
+| JGiven | Cucumber is the standard Gherkin answer; two BDD entries served neither well. |
+| XMLUnit | XML-specific and narrow enough to look up when you actually need it. |
+| Pact | Contract testing is a real practice, but it needs a broker and a deploy gate — an infrastructure commitment, not a library choice. |
+
+None of this says these are bad tools. They are answers to questions this router
+has chosen not to answer.
 
 ## Usage
 
