@@ -1,11 +1,15 @@
-# Java Testing Toolbox — an AI agent skill
+# JVM Testing Toolbox — an AI agent skill
+
+> **Renamed from `java-testing-toolbox`.** The skill now covers Kotlin too, for
+> mixed Java+Kotlin projects; its directory and skill name are
+> `jvm-testing-toolbox`.
 
 An [agent skill](https://code.claude.com/docs/en/skills) that helps AI coding
-tools (Claude Code, Cursor, Copilot, …) **pick the right Java/JVM testing tool
-for a given challenge** — the right framework, assertion library, mocking
-approach, or HTTP / infrastructure / browser / BDD / architecture tool — with
-the selection tie-breakers and pitfalls that generic model knowledge tends to
-miss.
+tools (Claude Code, Cursor, Copilot, …) **pick the right JVM testing tool for a
+given challenge in a Java and/or Kotlin project** — the right framework,
+assertion library, mocking approach, or HTTP / infrastructure / browser / BDD /
+architecture tool — with the selection tie-breakers and pitfalls that generic
+model knowledge tends to miss.
 
 It's a **router**, not a tutorial: it deliberately does *not* re-teach things an
 LLM already knows (basic JUnit 5 / Mockito / AssertJ usage). Its value is the
@@ -21,8 +25,10 @@ and his book:
 
 The Java tool selection, the categorization, the selection guidance, and the
 pitfalls are distilled from that book — **curated rather than mirrored** (see
-Coverage above for what is omitted, marked conditional, and why). Please support
-the original work:
+Coverage above for what is omitted and why). The Kotlin coverage (MockK,
+kotlinx-coroutines-test, Turbine, Kotest Property) and the mixed Java/Kotlin
+interop notes are **additions beyond the book** — not Philip's work, and not to
+be attributed to him. Please support the original work:
 
 - 📘 Book: https://leanpub.com/java-testing-toolbox
 - ✍️ Blog: https://rieckpil.de/
@@ -39,11 +45,12 @@ Packaged and maintained by [Aditya Parikh (@adityamparikh)](https://github.com/a
 ## What's inside
 
 ```
-.claude/skills/java-testing-toolbox/
+.claude/skills/jvm-testing-toolbox/
 ├── SKILL.md                 # the router: problem → tool decision tables
 └── references/
     ├── tool-cards.md        # one card per tool: purpose + the one high-signal note
-    └── pitfalls.md          # cross-cutting gotchas + tie-breaker rationale
+    ├── pitfalls.md          # cross-cutting gotchas + tie-breaker rationale
+    └── kotlin.md            # Kotlin depth + Java/Kotlin interop in one source set
 ```
 
 ## Coverage
@@ -78,6 +85,21 @@ problem most JVM teams hit:
 | Generate test data | Instancio |
 | Judge test quality beyond coverage | PIT |
 
+**If the module has Kotlin** — additions beyond the book, because real JVM
+projects mix the two languages, often in one source set:
+
+| Problem | Tool |
+|---|---|
+| Mock a Kotlin `object`, extension fn, or suspending answer | MockK |
+| Test `suspend` functions / coroutine scheduling | kotlinx-coroutines-test |
+| Assert on values a `Flow` emits | Turbine |
+| Property-based testing | Kotest Property |
+| Java/Kotlin interop in one source set | `references/kotlin.md` |
+
+The governing rule for a mixed module is **one engine**: JUnit Jupiter runs both
+languages. Libraries may differ per file; engines may not. That is why Kotest
+appears only as an assertion and property-testing library, never as a framework.
+
 ### What was cut, and why
 
 A survey benefits from breadth; a router is diluted by it, because every extra
@@ -104,7 +126,7 @@ has chosen not to answer.
 
 ## Usage
 
-Drop the `.claude/skills/java-testing-toolbox/` directory into a project (or a
+Drop the `.claude/skills/jvm-testing-toolbox/` directory into a project (or a
 personal skills directory) so your agent can discover it. The agent loads
 `SKILL.md` when a testing-tool-selection question arises, then pulls
 `references/*` only once routing lands on a specific tool.
