@@ -117,3 +117,41 @@ mistakes and decision points the base model tends to miss.
 - **Non-deterministic `now()`.** Tests that call `LocalDate.now()`/`Instant.now()`
   without an injected `Clock` are time-flaky. Enforce it with an **ArchUnit** rule so
   the whole codebase stays testable, not just the file you're editing.
+
+## Kotlin pitfalls (beyond the book)
+
+These are **additions beyond Philip Riecks' (Java-framed) book**. For the mixed
+source-set traps — `@JvmStatic`, platform types, `internal` friend-paths — see
+`references/kotlin.md`.
+
+- **Choose a mocker per type, not per module.** MockK earns its place for `object`s,
+  extension/top-level functions, and suspending answers that need real control;
+  Mockito + `mockito-kotlin` covers the rest (final classes mock by default since
+  Mockito 5 — see Mocking pitfalls — and `onBlocking { }` stubs `suspend` functions).
+  In a mixed source set both may sit on the classpath: an accepted cost, not an error.
+  The actual mistake is **two mockers on the same type**, which produces confusing
+  failures.
+- **Coroutine tests must not use real time.** Use `runTest { }` (virtual time) with an
+  injected `TestDispatcher` — not `runBlocking` + real `delay`, and never
+  `Thread.sleep`. Production code must **take its dispatcher as a parameter**; a
+  hardcoded `Dispatchers.IO`/`Main` can't be replaced, so the test can't control
+  scheduling. Choose `StandardTestDispatcher` (manual `advanceUntilIdle()`) over
+  `UnconfinedTestDispatcher` (eager) deliberately, not by copy-paste.
+- **Don't use `runTest` to wait on real infrastructure.** Virtual time skips `delay()`;
+  it cannot wait for a Testcontainers service, an HTTP endpoint, or a message to land
+  on a broker — that is still **Awaitility**, in Kotlin exactly as in Java. Conversely,
+  blocking inside `runTest` to bridge the gap stalls the virtual clock, so the test
+  hangs or quietly takes real time. Coroutine scheduling and eventual consistency are
+  different problems with different tools.
+- **`Flow` tests silently pass without Turbine.** Collecting to a list and asserting on
+  size can miss extra or late emissions. **Turbine**'s `test { }` fails on any
+  unconsumed item, so over-emission is caught rather than averaged away.
+- **PIT reports mislead on Kotlin.** The compiler emits `Intrinsics` null checks that
+  PIT mutates, filling reports with `removed call to
+  kotlin/jvm/internal/Intrinsics::… → SURVIVED` false positives. The option that
+  suppresses them also stops mutating any statement containing a null check —
+  including real business logic. Mutation scores are therefore **not comparable**
+  between the Java and Kotlin halves of one module; read them accordingly.
+- **Data classes change what you assert.** `equals`/`hashCode` are generated, so assert
+  whole-object equality (AssertJ `isEqualTo`, or `shouldBe`) instead of field-by-field
+  — but `copy()` is shallow, so deeply nested structures still need care.
