@@ -41,9 +41,12 @@ mistakes and decision points the base model tends to miss.
 
 ## Assertion pitfalls
 
-- **`assertThat` argument order differs by library.** Hamcrest/AssertJ:
-  `assertThat(actual)...`. JUnit's `assertEquals(expected, actual)`. Mixing Hamcrest
-  and AssertJ `assertThat` imports in one test is a foot-gun — be deliberate.
+- **`assertThat` argument order differs by library.** Hamcrest: `assertThat(actual,
+  matcher)`. AssertJ: `assertThat(actual)...`. JUnit: `assertEquals(expected,
+  actual)`. Mixing Hamcrest and AssertJ `assertThat` imports in one test is a
+  foot-gun — and because Spring MockMvc's `ResultMatchers` are Hamcrest-based, a
+  MockMvc test already has Hamcrest in scope whether you meant it or not. Be
+  deliberate: read Hamcrest, write AssertJ.
 - **JSONAssert strictness is the whole game.** The `boolean strict` / `JSONCompareMode`
   decides whether extra fields and array ordering fail the test. Default to **lenient**
   so tests aren't brittle; go strict only to pin exact structure/order.
@@ -55,53 +58,52 @@ mistakes and decision points the base model tends to miss.
 - **`UnnecessaryStubbingException`** fires when a stubbed call is never used — it's a
   feature (dead stub = unclear test). Fix the stub, or drop to `Strictness.LENIENT`
   deliberately, not reflexively.
-- **Don't add Mockito to a Spock spec** — Spock has `Mock`/`Stub` built in. In Spock,
-  `Stub` = return values only; `Mock` = also verify interactions. A `Mock` can act as
-  a `Stub`, not vice-versa.
-
-## HTTP mocking tie-breaker (WireMock vs MockWebServer)
-
-- **WireMock** when you need: request matching on headers/body/query, verification
-  (`verify(getRequestedFor(...))`), stub priorities, or a standalone/Docker server
-  shared across languages. Richer, slightly heavier.
-- **MockWebServer** when you want minimal footprint (it ships with OkHttp) and simple
-  scripted responses. Responses are **enqueued FIFO — served by order, not by URL**;
-  reach for a `Dispatcher` when you need URL/method routing or repeated responses.
+- **The "add `mockito-inline` for final classes" advice is stale.** Since **Mockito 5**
+  the inline mock-maker is the default in `mockito-core`; final classes, static methods
+  and constructors mock out of the box, and the separate artifact stopped being
+  published after 5.2. If you find that advice in an older answer or blog post, it
+  describes Mockito 4.
+- **Mocking what you don't own** turns a unit test into a guess about someone else's
+  API. For an outbound HTTP dependency the honest tool is **WireMock** (real protocol,
+  real serialization); for a real datastore it's **Testcontainers**.
 
 ## Infrastructure pitfalls
 
 - **Testcontainers readiness ≠ container started.** Always set an explicit wait
   strategy (`Wait.forHttp(path).forStatusCode(200)`, `Wait.forLogMessage(regex, n)`),
-  or tests race the service. Align module versions with the Testcontainers BOM.
-- **LocalStack seeding + endpoint override.** Put setup scripts in
-  `/docker-entrypoint-initaws.d`, gate readiness on their log output
-  (`Wait.forLogMessage(".*Initialized.*", 1)`), and point the AWS SDK at the mapped
-  edge port (4566) — it's randomized by Testcontainers, so read it dynamically.
-- **GreenMail default ports are offset +3000** (SMTP 25 → 3025, IMAP → 3143, …).
+  or tests race the service. This is the single most common cause of "passes locally,
+  flaky in CI". Align module versions with the Testcontainers BOM.
+- **Don't hand-map container ports and URLs on Spring Boot 3.1+.** `@ServiceConnection`
+  derives the connection properties from the container, so the test can't drift out of
+  sync with the image you're running.
+- **Reach for a real container over an in-memory substitute** when behaviour differs —
+  an embedded database that accepts SQL your production engine rejects will pass tests
+  and fail in production.
 
-## UI tie-breaker (Selenide vs Selenium)
+## Browser tie-breaker (Playwright vs Selenium)
 
-- **Selenide by default.** Its `should*` conditions auto-wait (removes the #1 cause of
-  UI flakiness), it auto-manages the driver, and it screenshots + dumps page source on
-  failure. Far less boilerplate.
-- **Selenium** only when you need low-level control Selenide abstracts away (custom
-  protocols, fine-grained wait/driver tuning). Then you own `WebDriverWait` +
-  `ExpectedConditions`.
+- **Playwright for new suites.** Its locators auto-wait until an element is actionable,
+  which removes the explicit-wait boilerplate behind most Selenium flakiness. Published
+  comparisons put it meaningfully faster with a far lower flake rate, and `trace.zip`
+  turns a CI failure into a replayable timeline.
+- **Selenium when you already have one.** A large, stable Selenium suite plus team
+  fluency beats a rewrite. Add new specs in Playwright and let the old suite age out;
+  a big-bang migration trades a known-good suite for an unknown one.
+
+## BDD pitfall (Cucumber)
+
+- **The selection criterion is social, not technical.** Cucumber earns its keep only
+  when non-engineers genuinely read and write the feature files. When they don't, the
+  Gherkin layer is indirection with no audience — plain JUnit + AssertJ expresses the
+  same behaviour with fewer moving parts and no step-definition regex to maintain.
+- **Run 7.x through the JUnit 5 Platform Suite** (`@Suite` +
+  `@IncludeEngines("cucumber")`), not the legacy JUnit 4 runner.
 
 ## Async pitfall
 
 - **`Thread.sleep` in async tests is always wrong** — it's slow *and* flaky. Use
   **Awaitility**: `await().atMost(...).until(...)` or `.untilAsserted(...)`. Use
   `ignoreExceptions()` while the resource is still coming up.
-
-## Performance tie-breakers
-
-- **ApacheBench** = 30-second CLI sanity check (throughput/latency).
-- **Gatling** = real load scenarios with a code DSL and reports; decide open vs closed
-  workload model deliberately.
-- **JMH** = *method-level* microbenchmarks — never hand-roll with `System.nanoTime()`,
-  the JIT will make naive benchmarks meaningless.
-- **JfrUnit** = assert on runtime/JFR behavior (allocations, latency, contention).
 
 ## Test-quality pitfall
 
