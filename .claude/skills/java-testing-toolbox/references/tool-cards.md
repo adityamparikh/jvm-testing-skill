@@ -80,12 +80,16 @@ code see `github.com/rieckpil/java-testing-ecosystem`.
   mapping init scripts to `/docker-entrypoint-initaws.d` and gate readiness with
   `Wait.forLogMessage(".*Initialized.*")`; override the AWS SDK endpoint to the
   container's mapped edge port (4566).
-- **GreenMail** — sandbox SMTP/IMAP/POP3 mail server. Note: `GreenMailExtension`;
-  default ports are offset by +3000 (SMTP → 3025). Also runnable standalone/Docker
-  for local dev.
-- **MicroShed Testing** — true-to-production tests for Jakarta EE / MicroProfile /
-  Quarkus. Note: builds on Testcontainers; `@MicroShedTest` + `ApplicationContainer`
-  deploy the real app; bring your own `Dockerfile` if the runtime isn't built in.
+- **GreenMail** — sandbox SMTP/IMAP/POP3 mail server. **Conditional — only if the app
+  actually sends mail.** Note: `GreenMailExtension`; default ports are offset by
+  +3000 (SMTP → 3025) — the single most common source of "connection refused" here.
+  Also runnable standalone/Docker. If Testcontainers is already in the build,
+  Mailpit/MailHog in a container is the lower-ceremony alternative.
+- **MicroShed Testing** — true-to-production tests for Jakarta EE / MicroProfile.
+  **Conditional — Jakarta EE / MicroProfile only.** Note: builds on Testcontainers;
+  `@MicroShedTest` + `ApplicationContainer` deploy the real app; bring your own
+  `Dockerfile` if the runtime isn't built in. Quarkus ships its own `@QuarkusTest`,
+  and Spring Boot wants `@SpringBootTest` + Testcontainers — neither should route here.
 
 ## Browser / UI
 
@@ -145,9 +149,6 @@ code see `github.com/rieckpil/java-testing-ecosystem`.
 - **Instancio** — generate random, fully populated objects. Note: `Instancio.of(...)`
   with `set`/`ignore`/`generate`; `ofList(...).size(n)`; integrates with Bean
   Validation (JSR 380). Kills test-data boilerplate.
-- **Diffblue Cover** — AI test generation. Note: reinforcement-learning-based, writes
-  human-readable JUnit tests, understands Spring (`@MockBean`, MVC setup). Community
-  edition for individuals.
 - **PIT (pitest)** — mutation testing. Note: **line coverage lies; mutation score
   doesn't.** Mutates bytecode (no prod-code change), surfaces surviving mutants that
   prove tests don't actually assert behavior. Run against changed code to keep it fast.

@@ -33,6 +33,9 @@ Libraries Every Java Developer Must Know_**. Full credit and links in the repo
    `references/pitfalls.md` (cross-cutting gotchas + tie-breaker rationale).
 4. Only pull deeper detail when routing has landed — don't preload all cards.
 
+Rows marked **Conditional** answer a narrow problem. Reach for them only when that
+exact problem is yours — never as a default, and never by analogy.
+
 ## Currency
 
 **Last verified: 2026-07** (JUnit 6.0.x era). Routing facts age. If the answer
@@ -84,8 +87,8 @@ the row is stale.
 |---|---|---|
 | A real DB / Kafka / Keycloak / any Dockerized dependency | **Testcontainers** | Default for integration infra. Use modules (PostgreSQLContainer…) and a **wait strategy** (`Wait.forHttp`, `forLogMessage`) or the container reports ready too early. |
 | Emulate AWS (S3/SQS/SNS/SSM…) locally | LocalStack | Via the Testcontainers module; seed infra with an init script in `/docker-entrypoint-initaws.d` + `Wait.forLogMessage`. |
-| Test sending/receiving email (SMTP/IMAP/POP3) | GreenMail | Sandbox mail server; `GreenMailExtension`. |
-| Test a Jakarta EE / MicroProfile / Quarkus app in-container | MicroShed Testing | Builds on Testcontainers; `@MicroShedTest`, deploys the app to a real server. |
+| Test sending/receiving email (SMTP/IMAP/POP3) | GreenMail | **Conditional — only if the app sends mail.** Sandbox mail server; `GreenMailExtension`; default ports offset +3000. Alternative: Testcontainers + Mailpit/MailHog if you already run Testcontainers. |
+| Test a Jakarta EE / MicroProfile app in-container | MicroShed Testing | **Conditional — Jakarta EE / MicroProfile only.** Builds on Testcontainers; `@MicroShedTest` deploys the app to a real server. On Quarkus prefer native `@QuarkusTest`; on Spring Boot this does not apply — use `@SpringBootTest` + Testcontainers. |
 
 ### Browser / UI
 
@@ -134,7 +137,6 @@ the row is stale.
 |---|---|---|
 | Enforce layering / no cycles / naming as tests | **ArchUnit** | Rules as JUnit tests; e.g. "services must not depend on controllers", "`LocalDate.now()` must take a `Clock`". |
 | Auto-generate random, fully populated test objects | Instancio | Cuts test-data boilerplate; override/ignore fields; integrates with Bean Validation. |
-| Auto-generate JUnit tests with AI | Diffblue Cover | Reinforcement-learning test generation; Spring-aware. |
 | Judge whether tests actually verify behavior | **PIT (pitest)** | **Coverage ≠ quality.** Mutates bytecode; surviving mutants reveal weak tests. Run on changed code. |
 
 ## Cross-cutting reminders
