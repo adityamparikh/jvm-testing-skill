@@ -30,9 +30,9 @@ fits which problem**, the **tie-breakers** between overlapping tools, and the
 Distilled from **Philip Riecks — _Java Testing Toolbox: 30 Testing Tools and
 Libraries Every Java Developer Must Know_**, then **curated** rather than
 mirrored — `README.md` records what was dropped and why. Full credit and links
-there. Runnable examples: `github.com/rieckpil/java-testing-ecosystem`. The Kotlin
-tools (MockK, kotlinx-coroutines-test, Turbine, Kotest Property) are additions
-**beyond the book**, which is Java-framed.
+there. Runnable examples: `github.com/rieckpil/java-testing-ecosystem`. Playwright,
+Cucumber, and the Kotlin tools (MockK, kotlinx-coroutines-test, Turbine, Kotest
+Property) are additions **beyond the book**, which is Java-framed.
 
 ## Scope
 
