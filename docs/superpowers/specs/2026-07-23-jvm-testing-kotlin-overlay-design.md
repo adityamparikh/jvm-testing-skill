@@ -54,9 +54,10 @@ a shared source set coherent, and it decides several rows below:
 
 - Kotest is included **only** as a property-testing and assertion library callable
   from a Jupiter `@Test`, never for its spec styles (which need Kotest's engine).
-- jqwik is the Java property-testing answer but **registers its own Platform
-  engine**. That is the one place the rule costs something, so the row states the
-  trade-off rather than hiding it.
+- **No Java-side property-testing entry.** jqwik is the obvious candidate and is
+  excluded: it registers its own Platform engine (breaking the rule), is in pure
+  maintenance mode, and ships an **Anti-AI Usage Clause** from v1.10 — which
+  disqualifies it from a skill whose sole consumer is an AI coding agent.
 
 ## Design (hybrid)
 
@@ -89,7 +90,7 @@ Add one line under "How to use this skill":
 
 | I need to… | Reach for | Note |
 |---|---|---|
-| Generate inputs and assert invariants | **jqwik** (Java) / **Kotest Property** (Kotlin) | jqwik registers its own Platform engine — a second engine alongside Jupiter (supported, but more config and IDE-discovery quirks). Kotest's `checkAll` runs inside a Jupiter `@Test`, preserving one engine. |
+| Generate inputs and assert an invariant holds (Kotlin) | **Kotest Property** | `checkAll` + `Arb` run inside an ordinary Jupiter `@Test` via `kotest-property` alone — no Kotest engine, no spec styles, one engine preserved. Shrinks failures to a minimal counterexample. |
 
 ### 5. New `references/kotlin.md` for depth
 Two halves:
@@ -112,7 +113,7 @@ Two halves:
 
 ## Decisions locked
 - **One engine (Jupiter).** Libraries may differ per file; engines may not. Kotest
-  enters as a library only. jqwik's second engine is stated as an explicit cost.
+  enters as a library only, and no tool requiring a second engine is recommended.
 - **Mocking in a shared source set.** The rule is **never two mockers on the same
   type** — not "one mocker per module". Mockito 5 + `mockito-kotlin` covers most
   Kotlin needs (final classes work by default; `onBlocking` stubs `suspend`
@@ -136,6 +137,9 @@ Two halves:
   extra reach (top-level/extension functions) doesn't justify a second
   architecture tool in a skill whose value is fewer, better-defended choices.
 - **No Kotest spec styles** — excluded by the one-engine rule.
+- **No jqwik.** Second Platform engine, pure maintenance mode, and an Anti-AI Usage
+  Clause since v1.10 that makes it inappropriate to route an AI agent toward.
+  Property testing is offered on the Kotlin side only.
 - **No Spring Boot Kotlin test wiring** (`@MockkBean`, all-open/no-arg plugins).
   The `spring-boot` skill owns Spring specifics; duplicating them here creates
   two places to go stale.
@@ -153,7 +157,7 @@ Two halves:
   section, property-testing row, cross-cutting reminders touch-up.
 - `jvm-testing-toolbox/references/kotlin.md` — new (tool depth + interop).
 - `jvm-testing-toolbox/references/tool-cards.md` — add cards for MockK,
-  `kotlinx-coroutines-test`, Turbine, Kotest Property, jqwik.
+  `kotlinx-coroutines-test`, Turbine, Kotest Property.
 - `jvm-testing-toolbox/references/pitfalls.md` — add Kotlin pitfalls (dispatcher
   hardcoding, `Flow` over-emission, PIT on Kotlin null checks, mocker mixing).
 - `README.md` — new name + old-name note + **Credit section corrected** so it no
