@@ -5,9 +5,9 @@ description: >-
   in a Java and/or Kotlin project — including when both languages share one
   module and source set. Covers picking a test framework, assertion library,
   mocking approach, or an HTTP / infrastructure / browser / BDD / architecture
-  tool. Deliberately curated to the tools JVM teams actually run, and flags the
-  selection tie-breakers and pitfalls that generic knowledge misses. Triggers
-  on: assert or compare JSON, extract a value from a JSON payload, mock an
+  tool, and flags the selection tie-breakers and pitfalls that generic knowledge
+  misses. Triggers on: assert or compare JSON, extract a value from a JSON
+  payload, mock an
   external HTTP API, integration test against a real database/broker/cloud with
   Testcontainers, test asynchronous code, black-box test a REST API, browser or
   end-to-end testing (Playwright vs Selenium), BDD/Gherkin scenarios, enforce
@@ -36,21 +36,11 @@ Property) are additions **beyond the book**, which is Java-framed.
 
 ## Scope
 
-Deliberately small, in two groups:
-
-- **Already on your classpath** — what `spring-boot-starter-test` pulls in:
-  JUnit, AssertJ, Hamcrest, Mockito, JSONassert, JsonPath, Awaitility. You will
-  use these whether or not you choose them, so the notes here are about using
-  them *correctly*, not about adopting them.
-- **Reached for constantly** — Testcontainers, WireMock, REST Assured,
-  Playwright, Cucumber, ArchUnit, Instancio, PIT.
-- **If the module has Kotlin** — MockK, kotlinx-coroutines-test, Turbine,
-  Kotest Property, plus `references/kotlin.md` for Java/Kotlin interop.
-
-A router is diluted by breadth: every extra destination is one more confident
-wrong turn. Tools that are excellent but narrow, unmaintained, or displaced were
-cut, not listed. If the answer isn't here, that is information — say so rather
-than reaching for something off-map.
+Deliberately narrow: what `spring-boot-starter-test` already puts on the classpath,
+the few tools reached for constantly on top of it, and the Kotlin tools when the
+module has Kotlin. Tools that are excellent but narrow, unmaintained, or displaced
+were cut — `README.md` records each one and why. **If the answer isn't in a table
+below, that is information**: say so rather than reaching for something off-map.
 
 ## Currency
 
@@ -70,16 +60,15 @@ the row is stale.
    `references/pitfalls.md` (cross-cutting gotchas + tie-breaker rationale).
 4. Only pull deeper detail when routing has landed — don't preload all cards.
 
-**Java or Kotlin?** These tables apply to both. Where Kotlin has an idiomatic swap
-the row's note names it (**Kotlin:** …); Kotlin-only concerns (coroutines, `Flow`)
-are in the **Kotlin on the JVM** section below. For Kotlin depth and the Java/Kotlin
-interop traps, open `references/kotlin.md`.
+**Java or Kotlin?** These tables apply to both. Where the Kotlin answer differs the
+row carries a short **Kotlin:** pointer, and the full decision lives in the **Kotlin
+on the JVM** section below. Depth and the Java/Kotlin interop traps are in
+`references/kotlin.md`.
 
-**One engine.** In a mixed Java+Kotlin module, run **JUnit Jupiter as the only test
-engine** — one runner, one report, one CI config. Libraries may differ per file;
-engines should not. That is why Kotest appears here as an assertion and
-property-testing *library* rather than a framework, and why no tool requiring a
-second engine appears at all.
+**One engine.** In a mixed module run **JUnit Jupiter as the only test engine** —
+libraries may differ per file, engines should not. That is why Kotest appears only
+as an assertion and property-testing library, and why no tool needing a second
+engine is listed.
 
 ## Routing tables
 
@@ -104,7 +93,7 @@ second engine appears at all.
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Mock/stub collaborators of a class under test | **Mockito** | Default. Keep the four golden rules; watch `UnnecessaryStubbingException` (strictness). Since **Mockito 5** the inline mock-maker is the default, so final classes and statics mock with no extra dependency. **Kotlin:** that covers Kotlin's final-by-default classes too, and `mockito-kotlin` adds null-safe matchers plus `onBlocking` for `suspend` functions. Reach for **MockK** for `object`s, extension/top-level fns, or suspending answers needing real control. Never two mockers on the same type. **Beyond the book.** |
+| Mock/stub collaborators of a class under test | **Mockito** | Default. Keep the four golden rules; watch `UnnecessaryStubbingException` (strictness). Since **Mockito 5** the inline mock-maker is the default, so final classes and statics mock with no extra dependency — Kotlin's final-by-default classes included. **Kotlin:** `mockito-kotlin` adds null-safe matchers and `onBlocking`; for `object`s, extension fns or suspending answers see *Kotlin on the JVM*. |
 
 ### Mock an external HTTP API
 
@@ -116,7 +105,7 @@ second engine appears at all.
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| A real DB, broker, cache, search index, identity server, cloud emulator — anything that ships as a container | **Testcontainers** | The general answer; prefer it over a bespoke fake or an in-memory substitute that behaves differently from production. Use the official module when one exists (`PostgreSQLContainer`, `KafkaContainer`, `LocalStackContainer`…), otherwise `GenericContainer` with an image. **Always set a wait strategy** (`Wait.forHttp`, `Wait.forLogMessage`) — "container started" ≠ "service ready". Align versions with the Testcontainers BOM. On Spring Boot 3.1+, `@ServiceConnection` wires the container to your properties automatically. |
+| A real DB, broker, cache, search index, identity server, cloud emulator — anything that ships as a container | **Testcontainers** | The general answer; prefer it over a bespoke fake or an in-memory substitute that behaves differently from production. Official module where one exists, else `GenericContainer`. **Always set a wait strategy** — "container started" ≠ "service ready", and that race is the top cause of flaky integration tests. On Spring Boot 3.1+ use `@ServiceConnection`. |
 
 ### REST API testing
 
@@ -148,8 +137,7 @@ second engine appears at all.
 |---|---|---|
 | Enforce layering / no cycles / naming as tests | **ArchUnit** | Rules as JUnit tests; e.g. "services must not depend on controllers", "`LocalDate.now()` must take a `Clock`". Reads bytecode, so it covers Java and Kotlin alike. |
 | Auto-generate random, fully populated test objects | Instancio | Cuts test-data boilerplate; `set`/`ignore`/`generate`, `ofList(n)`; integrates with Bean Validation. |
-| Generate inputs and assert an invariant holds (Kotlin) | **Kotest Property** | `checkAll` + `Arb` via `kotest-property` alone — runs inside a Jupiter `@Test`, no Kotest engine, one engine preserved. Shrinks failures to a minimal counterexample. No Java-side entry: jqwik would add a second Platform engine, is in maintenance mode, and carries an Anti-AI Usage Clause. **Beyond the book.** |
-| Judge whether tests actually verify behavior | **PIT (pitest)** | **Coverage ≠ quality.** Mutates bytecode; surviving mutants reveal tests that execute code without asserting on it. Scope it to changed code to keep runs fast. On Kotlin, generated `Intrinsics` null checks inflate the report — see pitfalls. |
+| Judge whether tests actually verify behavior | **PIT (pitest)** | **Coverage ≠ quality.** Mutates bytecode; surviving mutants reveal tests that execute code without asserting on it. Scope it to changed code to keep runs fast. **Kotlin:** generated `Intrinsics` null checks inflate the report — see pitfalls. |
 
 ### Kotlin on the JVM
 
@@ -163,25 +151,23 @@ are in `references/kotlin.md`.
 | Mock a Kotlin `object`, extension fn, or suspending answer | **MockK** | `mockkObject`, `mockkStatic`, `coEvery { } coAnswers { }`. For ordinary classes Mockito 5 + `mockito-kotlin` is fine — final classes mock by default, `onBlocking` stubs `suspend` fns. Never two mockers on the same type. |
 | Test `suspend` functions / coroutine scheduling | **kotlinx-coroutines-test** | `runTest { }` drives virtual time; advance with `advanceUntilIdle()` / `runCurrent()`. Inject dispatchers — don't hardcode `Dispatchers.IO`. **Not** for waiting on real infrastructure — that stays Awaitility. |
 | Assert on values a `Flow` emits | **Turbine** | `flow.test { awaitItem(); awaitComplete() }` — fails on unconsumed items, unlike a plain `toList()` collect. Pairs with any assertion lib. |
+| Generate inputs and assert an invariant holds | **Kotest Property** | `checkAll` + `Arb` via `kotest-property` alone — runs inside a Jupiter `@Test`, so one engine is preserved. Shrinks failures to a minimal counterexample. No Java-side entry: jqwik would add a second Platform engine, is in maintenance mode, and carries an Anti-AI Usage Clause. |
 | Fix Java/Kotlin interop in one source set | `references/kotlin.md` | `@JvmStatic` for `@BeforeAll`/`@MethodSource`, platform types weakening null assertions, `internal` friend-paths, PIT noise on Kotlin null checks. |
 
 ## Cross-cutting reminders
 
-- **Don't mix JUnit 4 and Jupiter (JUnit 5/6)** annotations/imports in the same test class.
+Silent-failure traps that no single row owns — these corrupt a suite rather than
+merely picking the wrong tool:
+
+- **Don't mix JUnit 4 and Jupiter (JUnit 5/6)** annotations/imports in the same test
+  class. Lifecycle callbacks stop firing and tests "pass" without running.
 - **Don't mix JUnit 5.x and 6.x artifacts** on one classpath — JUnit 6 unified
   Platform/Jupiter/Vintage under a single version; import the `junit-bom`.
-- **Awaitility over `Thread.sleep`** for anything asynchronous.
-- **One engine in a mixed module** — JUnit Jupiter runs both languages. Bring Kotest
-  in as a library (assertions, property testing), never as a second engine.
-- **Kotlin mocking: choose per type, not per module.** Mockito 5 + `mockito-kotlin`
-  covers most Kotlin; **MockK** for `object`s, extension fns, and suspending answers.
-  Never two mockers on the same type.
-- **Kotlin coroutines: `runTest` + an injected `TestDispatcher`**, never real delays
-  or `Thread.sleep`; **Turbine** for `Flow`. Waiting on real infrastructure is still
-  **Awaitility** — virtual time cannot wait on a container.
-- **Testcontainers over hand-rolled fakes** when the dependency has an image —
-  and always with an explicit wait strategy.
-- **PIT/mutation score, not line coverage**, is the real test-quality signal.
-- **AssertJ for new assertions**; read Hamcrest, don't write it.
-- Prefer the **bold default**; deviate only when a tie-breaker condition in
-  `references/pitfalls.md` clearly applies.
+- **Never two mockers on the same type** — Mockito and MockK may coexist in a mixed
+  module, but not on one type.
+- **`Thread.sleep` is never the answer** — Awaitility for wall-clock waiting,
+  `runTest` for coroutine scheduling. They are not interchangeable: virtual time
+  cannot wait on a container.
+
+Otherwise take the **bold default**, and deviate only when a tie-breaker in
+`references/pitfalls.md` clearly applies.
