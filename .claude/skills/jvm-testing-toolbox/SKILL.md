@@ -1,21 +1,26 @@
 ---
-name: java-testing-toolbox
+name: jvm-testing-toolbox
 description: >-
-  Use when choosing which Java/JVM testing tool to reach for on a specific
-  challenge — picking a test framework, assertion library, mocking approach, or
-  an HTTP / infrastructure / browser / BDD / architecture tool. Deliberately
-  curated to the tools JVM teams actually run, and flags the selection
-  tie-breakers and pitfalls that generic knowledge misses. Triggers on: assert
-  or compare JSON, extract a value from a JSON payload, mock an external HTTP
-  API, integration test against a real database/broker/cloud with
+  Use when choosing which JVM testing tool to reach for on a specific challenge
+  in a Java and/or Kotlin project — including when both languages share one
+  module and source set. Covers picking a test framework, assertion library,
+  mocking approach, or an HTTP / infrastructure / browser / BDD / architecture
+  tool. Deliberately curated to the tools JVM teams actually run, and flags the
+  selection tie-breakers and pitfalls that generic knowledge misses. Triggers
+  on: assert or compare JSON, extract a value from a JSON payload, mock an
+  external HTTP API, integration test against a real database/broker/cloud with
   Testcontainers, test asynchronous code, black-box test a REST API, browser or
   end-to-end testing (Playwright vs Selenium), BDD/Gherkin scenarios, enforce
   architecture rules as tests, generate test data, judge test quality beyond
-  coverage, or decide between JUnit versions (4 vs 5 vs 6) and handle JUnit 6
-  migration gotchas.
+  coverage, decide between JUnit versions (4 vs 5 vs 6) and handle JUnit 6
+  migration gotchas, choose between MockK and Mockito on Kotlin, mock a Kotlin
+  object or extension function, test Kotlin coroutines/suspend functions and
+  Flows (kotlinx-coroutines-test, Turbine), write property-based tests in Kotlin
+  (Kotest Property), or fix Java/Kotlin test interop problems in a mixed source
+  set.
 ---
 
-# Java Testing Toolbox — tool selector
+# JVM Testing Toolbox — tool selector
 
 This is a **router**, not a tutorial. Assume idiomatic use of well-known tools
 (JUnit 5/6, Mockito, AssertJ) is already known. The value here is **which tool
