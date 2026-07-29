@@ -122,3 +122,32 @@ The set is curated, not exhaustive — see `README.md` for what was cut and why.
   doesn't.** Mutates bytecode (no prod-code change), surfacing surviving mutants that
   prove a test ran the code without asserting on the result. Run against changed code
   to keep it fast; triage equivalent mutants separately.
+
+## Kotlin (beyond the book)
+
+The book is Java-framed; these are additions, included because real JVM projects mix
+Java and Kotlin — often in one source set. Depth and the interop traps live in
+`references/kotlin.md`.
+
+- **MockK** — idiomatic Kotlin mocking. Note: reach for it over Mockito when you need
+  `object` singletons (`mockkObject`), top-level/extension functions (`mockkStatic`),
+  or *suspending* answers with real control (`coEvery { } coAnswers { }`) — **not**
+  merely to mock final classes, which Mockito 5 does by default. `relaxed = true` /
+  `@RelaxedMockK` avoids stubbing every call. In a mixed module the rule is **never
+  two mockers on the same type**, not "one mocker per module".
+- **kotlinx-coroutines-test** — test `suspend`/coroutine code. Note: `runTest { }`
+  uses a virtual-time scheduler so `delay()` is skipped and tests stay deterministic.
+  `StandardTestDispatcher` queues coroutines (advance with
+  `advanceUntilIdle()`/`runCurrent()`); `UnconfinedTestDispatcher` runs them eagerly.
+  Inject dispatchers into production code — a hardcoded `Dispatchers.IO` can't be
+  swapped for a `TestDispatcher`. **Not** a substitute for Awaitility: virtual time
+  cannot wait on a real container or HTTP endpoint.
+- **Turbine** — assert on `Flow` emissions. Note: `flow.test { awaitItem();
+  awaitComplete() }` **fails if any emitted item goes unconsumed**, catching
+  over-emission that a plain `toList()` collect would hide. `awaitError()` for
+  failures; `cancelAndIgnoreRemainingEvents()` for infinite flows.
+- **Kotest Property** — property-based testing for Kotlin. Note: `checkAll` + `Arb`
+  generators run **inside an ordinary Jupiter `@Test`** via `kotest-property` alone —
+  no Kotest engine and no spec styles, so the module keeps a single test engine.
+  (`kotest-assertions-core` is separable the same way if you want `shouldBe`.)
+  Shrinks a failure to a minimal counterexample.
