@@ -54,13 +54,39 @@ Packaged and maintained by [Aditya Parikh (@adityamparikh)](https://github.com/a
 ## What's inside
 
 ```
-.claude/skills/jvm-testing-toolbox/
+.claude/skills/jvm-testing-toolbox/     ← canonical content
 ├── SKILL.md                 # the router: problem → tool decision tables
 └── references/
     ├── tool-cards.md        # one card per tool: purpose + the one high-signal note
     ├── pitfalls.md          # cross-cutting gotchas + tie-breaker rationale
     └── kotlin.md            # Kotlin depth + Java/Kotlin interop in one source set
+
+AGENTS.md                                        ← index + pointer (most agents)
+.github/instructions/jvm-testing.instructions.md ← index + pointer (Copilot)
+.cursor/rules/jvm-testing.mdc                    ← index + pointer (Cursor)
 ```
+
+### Which agents this works with
+
+The routing tables are written for **Claude Code's skill format**, which loads
+`SKILL.md` only when a testing question matches its description and pulls
+`references/*` only once routing lands. That progressive disclosure is the design —
+it keeps 170 lines of tables out of context on unrelated work.
+
+Other agents get **pointer files**, each using that agent's own gating so the content
+isn't always-loaded:
+
+| File | Read by | Gating |
+|---|---|---|
+| `AGENTS.md` | Codex, Cursor, Copilot, Gemini CLI, Aider, Windsurf, Zed, Devin, Jules, VS Code, Junie — and Claude Code | always loaded, so it stays short |
+| `.github/instructions/jvm-testing.instructions.md` | GitHub Copilot | `applyTo` globs — test sources only |
+| `.cursor/rules/jvm-testing.mdc` | Cursor | `globs` + `alwaysApply: false` — auto-attaches on test files |
+
+Each carries a compact problem→tool index and the traps worth knowing up front, then
+points at `SKILL.md` for the tie-breakers — which are the actual value. **Two
+caveats:** a pointer only works if the agent chooses to open the file, which is
+weaker than Claude's native loading; and the index is mirrored in three places, so
+adding or removing a tool means updating all three alongside `SKILL.md`.
 
 ## Coverage
 
@@ -137,10 +163,15 @@ has chosen not to answer.
 
 ## Usage
 
-Drop the `.claude/skills/jvm-testing-toolbox/` directory into a project (or a
-personal skills directory) so your agent can discover it. The agent loads
-`SKILL.md` when a testing-tool-selection question arises, then pulls
-`references/*` only once routing lands on a specific tool.
+**Claude Code:** drop the `.claude/skills/jvm-testing-toolbox/` directory into a
+project (or a personal skills directory) so your agent can discover it. It loads
+`SKILL.md` when a testing-tool-selection question arises, then pulls `references/*`
+only once routing lands on a specific tool.
+
+**Other agents:** copy the skill directory *plus* the pointer file for your tool —
+`AGENTS.md`, `.github/instructions/jvm-testing.instructions.md`, or
+`.cursor/rules/jvm-testing.mdc`. The pointers are useless without the skill directory
+they reference.
 
 ## License
 
