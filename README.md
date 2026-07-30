@@ -29,7 +29,7 @@ It has since diverged, so please don't read the whole of it as his work:
   around what JVM teams reach for most — see Coverage above for each cut and its
   reason.
 - **Extended.** Playwright, Cucumber, and the entire Kotlin side (MockK,
-  kotlinx-coroutines-test, Turbine, Kotest Property, and the Java/Kotlin interop
+  kotlinx-coroutines-test, and the Java/Kotlin interop
   notes) are additions the book doesn't cover — it is Java-framed.
 - **Updated.** Version-sensitive guidance is re-checked against current release
   notes and corrected where the ecosystem moved — JUnit 6 as the default, and
@@ -101,13 +101,13 @@ projects mix the two languages, often in one source set:
 |---|---|
 | Mock a Kotlin `object`, extension fn, or suspending answer | MockK |
 | Test `suspend` functions / coroutine scheduling | kotlinx-coroutines-test |
-| Assert on values a `Flow` emits | Turbine |
-| Property-based testing | Kotest Property |
+| Assert on values a `Flow` emits | kotlinx-coroutines-test |
 | Java/Kotlin interop in one source set | `references/kotlin.md` |
 
-The governing rule for a mixed module is **one engine**: JUnit Jupiter runs both
-languages. Libraries may differ per file; engines may not. That is why Kotest
-appears only as an assertion and property-testing library, never as a framework.
+Two tools, because that is all a mixed module needs. The governing rule is **one
+engine**: JUnit Jupiter runs both languages. Libraries may differ per file; engines
+may not — no tool requiring a second JUnit Platform engine appears anywhere in the
+skill, which is a deliberate constraint rather than an omission.
 
 ### What was cut, and why
 
@@ -129,6 +129,8 @@ longer earns a slot:
 | JGiven | Cucumber is the standard Gherkin answer; two BDD entries served neither well. |
 | XMLUnit | XML-specific and narrow enough to look up when you actually need it. |
 | Pact | Contract testing is a real practice, but it needs a broker and a deploy gate — an infrastructure commitment, not a library choice. |
+| Turbine | `kotlinx-coroutines-test` already tests `Flow` — `toList()` inside `runTest` for cold flows, `TestScope.backgroundScope` for hot ones. Turbine adds ergonomics (notably failing on unconsumed emissions), not capability, and its centre of gravity is Android. |
+| Kotest (incl. Kotest Property) | The spec styles need a second Platform engine, which the one-engine rule rules out. The property module avoids that, but property-based testing is rarer on the JVM than several practices already cut — and with jqwik excluded it would have been Kotlin-only, which is a worse answer than not raising the topic. |
 
 None of this says these are bad tools. They are answers to questions this router
 has chosen not to answer.

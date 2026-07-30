@@ -15,9 +15,8 @@ description: >-
   coverage, decide between JUnit versions (4 vs 5 vs 6) and handle JUnit 6
   migration gotchas, choose between MockK and Mockito on Kotlin, mock a Kotlin
   object or extension function, test Kotlin coroutines/suspend functions and
-  Flows (kotlinx-coroutines-test, Turbine), write property-based tests in Kotlin
-  (Kotest Property), or fix Java/Kotlin test interop problems in a mixed source
-  set.
+  Flows (kotlinx-coroutines-test), or fix Java/Kotlin test interop problems in a
+  mixed source set.
 ---
 
 # JVM Testing Toolbox — tool selector
@@ -31,8 +30,8 @@ Distilled from **Philip Riecks — _Java Testing Toolbox: 30 Testing Tools and
 Libraries Every Java Developer Must Know_**, then **curated** rather than
 mirrored — `README.md` records what was dropped and why. Full credit and links
 there. Runnable examples: `github.com/rieckpil/java-testing-ecosystem`. Playwright,
-Cucumber, and the Kotlin tools (MockK, kotlinx-coroutines-test, Turbine, Kotest
-Property) are additions **beyond the book**, which is Java-framed.
+Cucumber, and the Kotlin tools (MockK, kotlinx-coroutines-test) are additions
+**beyond the book**, which is Java-framed.
 
 ## Scope
 
@@ -66,9 +65,8 @@ on the JVM** section below. Depth and the Java/Kotlin interop traps are in
 `references/kotlin.md`.
 
 **One engine.** In a mixed module run **JUnit Jupiter as the only test engine** —
-libraries may differ per file, engines should not. That is why Kotest appears only
-as an assertion and property-testing library, and why no tool needing a second
-engine is listed.
+libraries may differ per file, engines should not. No tool needing a second Platform
+engine is listed here — that is a deliberate constraint, not an omission.
 
 ## Routing tables
 
@@ -84,7 +82,7 @@ engine is listed.
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Fluent, chainable assertions on any type | **AssertJ** | Default for everything new. Soft assertions to report all failures at once; custom `AbstractAssert` for domain types. **Kotlin:** `kotest-assertions-core` (`x shouldBe y`) is an idiomatic alternative that needs no Kotest engine; AssertJ itself works unchanged from Kotlin. |
+| Fluent, chainable assertions on any type | **AssertJ** | Default for everything new. Soft assertions to report all failures at once; custom `AbstractAssert` for domain types. Works unchanged from Kotlin. |
 | Matcher-style `assertThat(actual, matcher)` | Hamcrest | **You will meet this whether or not you choose it** — Spring MockMvc's `ResultMatchers` are Hamcrest-based. Arg order is the reverse of JUnit's `assertEquals(expected, actual)`. Read it fluently; don't reach for it when writing new assertions. |
 | Extract a value from a JSON payload | **JsonPath** | `$..price.max()`, filters `[?(@.tags.size() > 2)]`. It *extracts* — pair it with an assertion library. |
 | Compare a whole JSON document | **JSONAssert** | Verifies logical structure. **Mind `strictMode`/`JSONCompareMode`** — lenient by default; strict enforces array order + no extra fields. |
@@ -150,8 +148,7 @@ are in `references/kotlin.md`.
 |---|---|---|
 | Mock a Kotlin `object`, extension fn, or suspending answer | **MockK** | `mockkObject`, `mockkStatic`, `coEvery { } coAnswers { }`. For ordinary classes Mockito 5 + `mockito-kotlin` is fine — final classes mock by default, `onBlocking` stubs `suspend` fns. Never two mockers on the same type. |
 | Test `suspend` functions / coroutine scheduling | **kotlinx-coroutines-test** | `runTest { }` drives virtual time; advance with `advanceUntilIdle()` / `runCurrent()`. Inject dispatchers — don't hardcode `Dispatchers.IO`. **Not** for waiting on real infrastructure — that stays Awaitility. |
-| Assert on values a `Flow` emits | **Turbine** | `flow.test { awaitItem(); awaitComplete() }` — fails on unconsumed items, unlike a plain `toList()` collect. Pairs with any assertion lib. |
-| Generate inputs and assert an invariant holds | **Kotest Property** | `checkAll` + `Arb` via `kotest-property` alone — runs inside a Jupiter `@Test`, so one engine is preserved. Shrinks failures to a minimal counterexample. No Java-side entry: jqwik would add a second Platform engine, is in maintenance mode, and carries an Anti-AI Usage Clause. |
+| Assert on values a `Flow` emits | **kotlinx-coroutines-test** | **Cold, finite flow:** collect it inside `runTest` — `toList()`/`first()`/`last()`. **Hot flow** (`StateFlow`/`SharedFlow`) never completes, so `toList()` hangs: collect in `TestScope.backgroundScope`, which is cancelled at test end, using `UnconfinedTestDispatcher` so the collector is live before the first emission. |
 | Fix Java/Kotlin interop in one source set | `references/kotlin.md` | `@JvmStatic` for `@BeforeAll`/`@MethodSource`, platform types weakening null assertions, `internal` friend-paths, PIT noise on Kotlin null checks. |
 
 ## Cross-cutting reminders

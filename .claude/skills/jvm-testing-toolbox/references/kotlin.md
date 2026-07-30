@@ -52,29 +52,27 @@ quick decision, use the "Kotlin on the JVM" table in `SKILL.md`.
   Blocking inside `runTest` to bridge the gap stalls the virtual clock — the test
   hangs or silently takes real time.
 
-## Flow testing: Turbine
+## Flow testing — no extra library needed
 
-- `flow.test { … }` collects the flow inside a scope and **requires every emission
-  to be consumed** — `awaitItem()`, `awaitComplete()`, `awaitError()`. If the flow
-  emits more than the test consumes, the block fails; a plain `toList()` collect
-  would silently pass.
-- For infinite/hot flows, end with `cancelAndIgnoreRemainingEvents()`.
-- Combine with virtual time (`runTest`) when the flow uses `delay`/`debounce`.
+`kotlinx-coroutines-test` covers this. The split that matters is cold vs hot.
 
-## Property testing: Kotest Property
+- **Cold, finite flow:** collect it inside `runTest` — `toList()`, `first()`,
+  `last()`. Exact, and what the official coroutines docs reach for. Assert on the
+  contents, not just the size: a size-only assertion passes despite extra emissions.
+- **Hot flow (`StateFlow`/`SharedFlow`) can't be `toList()`-ed.** It never completes,
+  so the collection never returns and the test hangs — presenting as a slow test
+  rather than a broken one. Collect it in `TestScope.backgroundScope.launch { … }`
+  instead: coroutines started there are cancelled at the end of the test, so
+  `runTest` doesn't wait forever. Pair it with `UnconfinedTestDispatcher` so the
+  collector is live before the first emission.
+- **Asserting between emissions** — drive the scheduler (`advanceUntilIdle()`,
+  `runCurrent()`) between assertions rather than collecting everything up front.
+- Combine with virtual time when the flow uses `delay`/`debounce` — `runTest`
+  already provides it, so a `debounce(30.seconds)` test runs instantly.
 
-- **`kotest-property` is a plain library, and that is the whole point.**
-  `checkAll { a, b -> … }` runs inside an ordinary Jupiter `@Test` — no Kotest
-  engine, no spec styles — so the module keeps a single test engine.
-- It shrinks a failure to a minimal counterexample, which is what makes property
-  testing worth more than hand-rolled random input.
-- `kotest-assertions-core` is separable the same way (`shouldBe`, `shouldThrow`) if
-  you want Kotlin-idiomatic assertions without adopting the Kotest engine.
-- **No Java-side equivalent is recommended.** jqwik is the obvious candidate and is
-  deliberately excluded: it registers its own Platform engine, is in pure
-  maintenance mode, and carries an Anti-AI Usage Clause from v1.10. If Java-side
-  invariants genuinely need property testing, make that a considered exception —
-  not a default this skill routes you into.
+A dedicated Flow-testing library (Turbine is the well-known one) buys ergonomics on
+top of this — notably failing on unconsumed emissions — but it is not required, and
+this skill doesn't route you to a dependency the platform already covers.
 
 ## Mixed source set: Java and Kotlin in one module
 
