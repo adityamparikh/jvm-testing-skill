@@ -143,14 +143,16 @@ source-set traps — `@JvmStatic`, platform types, `internal` friend-paths — s
   blocking inside `runTest` to bridge the gap stalls the virtual clock, so the test
   hangs or quietly takes real time. Coroutine scheduling and eventual consistency are
   different problems with different tools.
-- **Don't reach for Turbine reflexively — and never `toList()` a hot flow.** For a
-  **cold, finite** flow, collecting inside `runTest` (`toList()`/`first()`/`last()`)
-  is exact and needs no dependency. A **hot** flow (`StateFlow`/`SharedFlow`) never
-  completes, so `toList()` hangs the test: collect it in `TestScope.backgroundScope`,
-  which is cancelled at test end, or use **Turbine**. Turbine's own added value is
-  that `test { }` fails on any *unconsumed* item — so over-emission is caught rather
-  than averaged away by an assertion on list size — and that you can assert
-  *between* emissions rather than only on the final collection.
+- **Never `toList()` a hot flow.** For a **cold, finite** flow, collecting inside
+  `runTest` (`toList()`/`first()`/`last()`) is exact and needs no extra dependency.
+  But a **hot** flow (`StateFlow`/`SharedFlow`) never completes, so the collection
+  never returns and the test hangs — a failure mode that looks like a slow test
+  rather than a broken one. Collect it in `TestScope.backgroundScope`, whose
+  coroutines are cancelled at the end of the test, with `UnconfinedTestDispatcher`
+  so the collector is live before the first emission.
+- **Assert on the emissions you expect, not just the count.** A `toList()` result
+  checked only for size will pass despite extra or late emissions. Assert the
+  contents.
 - **PIT reports mislead on Kotlin.** The compiler emits `Intrinsics` null checks that
   PIT mutates, filling reports with `removed call to
   kotlin/jvm/internal/Intrinsics::… → SURVIVED` false positives. The option that

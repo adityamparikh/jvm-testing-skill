@@ -52,41 +52,27 @@ quick decision, use the "Kotlin on the JVM" table in `SKILL.md`.
   Blocking inside `runTest` to bridge the gap stalls the virtual clock — the test
   hangs or silently takes real time.
 
-## Flow testing: first-party first, Turbine when it earns it
+## Flow testing — no extra library needed
 
-- **Start first-party.** For a **cold, finite** flow, collect it inside `runTest`:
-  `toList()`, `first()`, `last()`. This is exact, needs no extra dependency, and is
-  what the official coroutines docs reach for.
-- **Hot flows can't be `toList()`-ed.** `StateFlow`/`SharedFlow` never complete, so
-  the collection never returns and the test hangs. The first-party answer is
-  `TestScope.backgroundScope.launch { … }` — coroutines started there are cancelled
-  at the end of the test, so `runTest` doesn't wait forever. Pair it with
-  `UnconfinedTestDispatcher` so the collector is running before the first emission.
-- **Turbine earns its place** in two cases the above handle awkwardly:
-  1. **Asserting between emissions** — `awaitItem()` inspects events one at a time
-     and lets you interleave assertions, instead of only asserting on the final list.
-  2. **Catching over-emission** — `flow.test { … }` **fails on any unconsumed item**,
-     so an extra or late emission is a failure rather than something an
-     assertion on list size averages away.
-- Turbine specifics: `awaitError()` for failures, `cancelAndIgnoreRemainingEvents()`
-  for infinite flows, `expectMostRecentItem()` to skip to the latest state.
-- Combine either approach with virtual time (`runTest`) when the flow uses
-  `delay`/`debounce`.
+`kotlinx-coroutines-test` covers this. The split that matters is cold vs hot.
 
-## Property testing: Kotest Property
+- **Cold, finite flow:** collect it inside `runTest` — `toList()`, `first()`,
+  `last()`. Exact, and what the official coroutines docs reach for. Assert on the
+  contents, not just the size: a size-only assertion passes despite extra emissions.
+- **Hot flow (`StateFlow`/`SharedFlow`) can't be `toList()`-ed.** It never completes,
+  so the collection never returns and the test hangs — presenting as a slow test
+  rather than a broken one. Collect it in `TestScope.backgroundScope.launch { … }`
+  instead: coroutines started there are cancelled at the end of the test, so
+  `runTest` doesn't wait forever. Pair it with `UnconfinedTestDispatcher` so the
+  collector is live before the first emission.
+- **Asserting between emissions** — drive the scheduler (`advanceUntilIdle()`,
+  `runCurrent()`) between assertions rather than collecting everything up front.
+- Combine with virtual time when the flow uses `delay`/`debounce` — `runTest`
+  already provides it, so a `debounce(30.seconds)` test runs instantly.
 
-- **`kotest-property` is a plain library, and that is the whole point.**
-  `checkAll { a, b -> … }` runs inside an ordinary Jupiter `@Test` — no Kotest
-  engine, no spec styles — so the module keeps a single test engine.
-- It shrinks a failure to a minimal counterexample, which is what makes property
-  testing worth more than hand-rolled random input.
-- `kotest-assertions-core` is separable the same way (`shouldBe`, `shouldThrow`) if
-  you want Kotlin-idiomatic assertions without adopting the Kotest engine.
-- **No Java-side equivalent is recommended.** jqwik is the obvious candidate and is
-  deliberately excluded: it registers its own Platform engine, is in pure
-  maintenance mode, and carries an Anti-AI Usage Clause from v1.10. If Java-side
-  invariants genuinely need property testing, make that a considered exception —
-  not a default this skill routes you into.
+A dedicated Flow-testing library (Turbine is the well-known one) buys ergonomics on
+top of this — notably failing on unconsumed emissions — but it is not required, and
+this skill doesn't route you to a dependency the platform already covers.
 
 ## Mixed source set: Java and Kotlin in one module
 
