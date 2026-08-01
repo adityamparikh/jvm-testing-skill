@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "description": "The single tool or library you would reach for. Empty string if the question is outside the scope of a JVM testing toolbox."
+    },
+    "why": {
+      "type": "string",
+      "description": "One or two sentences. The deciding reason, not a summary of the tool."
+    },
+    "avoid": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Tools you would explicitly steer away from for this problem."
+    },
+    "off_map": {
+      "type": "boolean",
+      "description": "True if this problem is outside the scope of JVM testing tool selection and you should say so rather than pick something."
+    },
+    "would_verify_version": {
+      "type": "boolean",
+      "description": "True if answering correctly depends on a version-sensitive fact you would check against current release notes before asserting it."
+    }
+  },
+  "required": ["tool", "why", "avoid", "off_map", "would_verify_version"],
+  "additionalProperties": false
+}

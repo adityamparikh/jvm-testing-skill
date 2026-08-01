@@ -1,0 +1,283 @@
+{
+  "suite": "route",
+  "skill": "jvm-testing-toolbox",
+  "notes": [
+    "Four sub-suites, reported SEPARATELY and never summed, because they measure different things.",
+    "routing / tiebreak: correctness. There is a defensible right answer independent of this repo.",
+    "negative: CONFORMANCE to this repo's editorial policy, not correctness. The cut tools in README.md:120-133 are good tools; recommending Turbine is a policy deviation, not a defect. This sub-suite will show the largest delta in the study precisely because the decisions are private and unknowable - that is a fact about information, not about usefulness. Never fold it into a headline number.",
+    "protocol: tests two behaviours SKILL.md claims about itself (scope refusal at :41-42, currency at :44-51) and that nothing has ever verified. P05 is the over-refusal control: an on-map question that must NOT be refused.",
+    "tiebreak cases come in pairs sharing a domain with opposite answers. If both halves get the same answer, the tie-breaker prose is inert and should be cut.",
+    "expected_baseline_answer is written before any run; a case whose baseline answer we cannot predict is not discriminating.",
+    "A case key may be a list of acceptable canonical tools. Cut-list checks match the tool actually recommended (after synonym normalisation), not any substring: an answer of 'JUnit Jupiter, optionally with kotest-assertions-core' recommends Jupiter, and the assertions module needs no second Platform engine, so it does not breach the one-engine rule."
+  ],
+  "synonyms": {
+    "junit6": [
+      "junit 6",
+      "junit6",
+      "junit jupiter 6",
+      "jupiter 6",
+      "junit 6 (jupiter)",
+      "junit platform 6"
+    ],
+    "junit5": [
+      "junit 5",
+      "junit5",
+      "junit jupiter",
+      "jupiter",
+      "junit 5 (jupiter)"
+    ],
+    "assertj": [
+      "assertj"
+    ],
+    "jsonpath": [
+      "jsonpath",
+      "json path",
+      "jayway jsonpath",
+      "jayway"
+    ],
+    "jsonassert": [
+      "jsonassert"
+    ],
+    "mockito": [
+      "mockito",
+      "mockito 5",
+      "mockito-kotlin",
+      "mockito + mockito-kotlin"
+    ],
+    "mockk": [
+      "mockk"
+    ],
+    "wiremock": [
+      "wiremock"
+    ],
+    "testcontainers": [
+      "testcontainers"
+    ],
+    "restassured": [
+      "rest assured",
+      "rest-assured",
+      "restassured"
+    ],
+    "awaitility": [
+      "awaitility"
+    ],
+    "playwright": [
+      "playwright"
+    ],
+    "selenium": [
+      "selenium",
+      "selenide"
+    ],
+    "cucumber": [
+      "cucumber",
+      "cucumber-jvm",
+      "cucumber (jvm)"
+    ],
+    "archunit": [
+      "archunit"
+    ],
+    "instancio": [
+      "instancio"
+    ],
+    "pit": [
+      "pit",
+      "pitest",
+      "pit (pitest)",
+      "pit mutation testing"
+    ],
+    "coroutines-test": [
+      "kotlinx-coroutines-test",
+      "kotlinx coroutines test",
+      "coroutines-test",
+      "runtest"
+    ]
+  },
+  "cut_tools": [
+    "turbine",
+    "kotest",
+    "mockwebserver",
+    "selenide",
+    "diffblue",
+    "testng",
+    "spock",
+    "jgiven",
+    "xmlunit",
+    "pact",
+    "greenlmail",
+    "greenmail",
+    "localstack",
+    "microshed",
+    "jfrunit",
+    "jqwik",
+    "gatling"
+  ],
+  "cases": [
+    {
+      "id": "R01",
+      "sub_suite": "routing",
+      "key": "testcontainers",
+      "prompt": "We're writing integration tests for a service that reads from Postgres and publishes to Kafka. Right now the tests use H2 with a Postgres compatibility mode and an embedded Kafka. We keep hitting cases where something passes in tests and breaks in staging. What should we be using instead?",
+      "expected_baseline_answer": "Very likely says Testcontainers - this is well-known. Expect a ceiling case. Included to measure how much of the routing suite is ceiling."
+    },
+    {
+      "id": "R02",
+      "sub_suite": "routing",
+      "key": "jsonpath",
+      "prompt": "I have a fairly deep JSON response from our pricing endpoint and I just need to pull out the highest price across all the nested line items so I can assert on it. I don't want to deserialise the whole thing into POJOs for one number.",
+      "expected_baseline_answer": "Likely JsonPath. The discriminating part is whether it also says JsonPath only extracts and must be paired with an assertion library, rather than presenting it as an assertion tool."
+    },
+    {
+      "id": "R03",
+      "sub_suite": "routing",
+      "key": "awaitility",
+      "prompt": "Our test publishes a message and then checks that a projection row appeared in the read model. It's green locally and flaky in CI. Right now there's a Thread.sleep(2000) in the middle of it. What's the right way to write this?",
+      "expected_baseline_answer": "Likely Awaitility - reasonably well known. Discriminating detail is ignoreExceptions() while the resource is still coming up, and untilAsserted vs until."
+    },
+    {
+      "id": "R04",
+      "sub_suite": "routing",
+      "key": "pit",
+      "prompt": "Management is happy because we hit 92% line coverage. I'm not, because I've seen tests in this repo that call a method and assert nothing. How do I actually measure whether the suite verifies behaviour?",
+      "expected_baseline_answer": "Likely PIT/mutation testing. Discriminating detail is scoping PIT to changed code to keep runs fast, and triaging equivalent mutants."
+    },
+    {
+      "id": "R05",
+      "sub_suite": "routing",
+      "key": "archunit",
+      "prompt": "We keep merging code where a service class imports a controller, and every few months someone reintroduces a package cycle. Code review isn't catching it reliably. Can this be enforced automatically as part of the build?",
+      "expected_baseline_answer": "Likely ArchUnit. Fairly well known; possible ceiling case."
+    },
+    {
+      "id": "T01a",
+      "sub_suite": "tiebreak",
+      "pair": "browser",
+      "key": "selenium",
+      "prompt": "We have about 400 Selenium tests that have been stable for three years and the team knows the API cold. We're adding one new checkout flow and need browser coverage for it. A contractor is pushing to rewrite the whole suite in Playwright first. What should we do?",
+      "expected_baseline_answer": "Likely recommends Playwright anyway, because Playwright-over-Selenium is the prevailing default in training data. The correct answer is to keep the working suite and add new specs in Playwright rather than big-bang migrate."
+    },
+    {
+      "id": "T01b",
+      "sub_suite": "tiebreak",
+      "pair": "browser",
+      "key": "playwright",
+      "prompt": "Greenfield internal admin app, no browser tests at all yet. We need end-to-end coverage of about a dozen flows across Chrome and Safari. What should we build it on?",
+      "expected_baseline_answer": "Likely Playwright. This half is expected to be easy - the pair only carries information if T01a differs from it."
+    },
+    {
+      "id": "T02a",
+      "sub_suite": "tiebreak",
+      "pair": "junit-major",
+      "key": "junit5",
+      "prompt": "We're on Java 11 and Kotlin 1.9 and won't get budget to move the JDK until next year. A teammate wants to bump the test framework to the newest major line. Should we?",
+      "expected_baseline_answer": "May well say yes without checking the JDK floor. JUnit 6 requires Java 17+/Kotlin 2.2+, so the answer is stay on JUnit 5 and move the JDK first."
+    },
+    {
+      "id": "T02b",
+      "sub_suite": "tiebreak",
+      "pair": "junit-major",
+      "key": "junit6",
+      "prompt": "New service, Java 21, Spring Boot 4, no legacy tests to carry. Which JUnit should we standardise on?",
+      "expected_baseline_answer": "Likely JUnit 5 out of habit, since JUnit 6 GA'd relatively recently (Sept 2025). Getting JUnit 6 here is a genuine currency signal."
+    },
+    {
+      "id": "T03a",
+      "sub_suite": "tiebreak",
+      "pair": "flow",
+      "key": "coroutines-test",
+      "prompt": "Kotlin. I have a repository function returning a cold Flow that emits three domain events and then completes. I want to assert on exactly those three values in a unit test. What's the cleanest way?",
+      "expected_baseline_answer": "May reach for Turbine, which is the popular Android answer. The router's position is that toList() inside runTest is exact and needs no extra dependency."
+    },
+    {
+      "id": "T03b",
+      "sub_suite": "tiebreak",
+      "pair": "flow",
+      "key": "coroutines-test",
+      "prompt": "Kotlin. Same project, but now it's a StateFlow on a ViewModel that never completes. My test collects it into a list before asserting and the test just hangs until the timeout. How should this be written?",
+      "expected_baseline_answer": "The hang is the tell. Correct answer is TestScope.backgroundScope with UnconfinedTestDispatcher so the collector is live before the first emission. A baseline may suggest Turbine, or take(n), or a timeout - all of which miss the mechanism."
+    },
+    {
+      "id": "T04a",
+      "sub_suite": "tiebreak",
+      "pair": "kotlin-mock",
+      "key": "mockk",
+      "prompt": "Kotlin service. I need to stub a Kotlin `object` singleton that the class under test calls into, and one of the calls is a suspending function where I need to control when it resumes. Mockito is already on the classpath.",
+      "expected_baseline_answer": "May say 'add mockito-inline' or try Mockito. Kotlin objects and controlled suspending answers are exactly where MockK earns its place (mockkObject, coEvery/coAnswers)."
+    },
+    {
+      "id": "T04b",
+      "sub_suite": "tiebreak",
+      "pair": "kotlin-mock",
+      "key": "mockito",
+      "prompt": "Kotlin service, mostly-Java codebase, heavy Spring integration tests. I need to mock an ordinary Kotlin service class - a plain non-open class with a couple of regular methods. Do we need to add a Kotlin-specific mocking library for this?",
+      "expected_baseline_answer": "May say yes, add MockK, or say 'add mockito-inline for final classes' - which has been stale since Mockito 5 made the inline mock-maker the default. Correct answer is that plain Mockito already handles it."
+    },
+    {
+      "id": "N01",
+      "sub_suite": "negative",
+      "key": "wiremock",
+      "conformance": true,
+      "prompt": "We have an OkHttp client that calls a partner's REST API. I want to stub that endpoint in tests, including verifying we sent the right headers, and assert behaviour when it returns 503.",
+      "expected_baseline_answer": "MockWebServer is the idiomatic OkHttp answer and is very likely here. This repo cut it because WireMock already covers it. Policy deviation, not a defect."
+    },
+    {
+      "id": "N02",
+      "sub_suite": "negative",
+      "key": [
+        "junit5",
+        "junit6"
+      ],
+      "conformance": true,
+      "prompt": "Kotlin team. Several people want a more expressive spec-style test syntax - describe/it blocks, that sort of thing - instead of JUnit's annotations. What should we adopt?",
+      "expected_baseline_answer": "Almost certainly recommends Kotest. This repo excludes it because its spec styles need a second JUnit Platform engine, which the one-engine rule forbids in a mixed module.",
+      "key_note": "Either JUnit major is correct. The case tests whether a second Platform engine is avoided, not which Jupiter version is named."
+    },
+    {
+      "id": "N03",
+      "sub_suite": "negative",
+      "key": "testcontainers",
+      "conformance": true,
+      "prompt": "I need integration tests for code that uploads to S3 and reads back from a DynamoDB table. What's the standard way to test AWS interactions locally?",
+      "expected_baseline_answer": "Very likely standalone LocalStack. This repo routes to Testcontainers (including its LocalStack module) so there is one mechanism for all infrastructure."
+    },
+    {
+      "id": "P01",
+      "sub_suite": "protocol",
+      "key": "",
+      "expect_off_map": true,
+      "prompt": "We need to find out how many concurrent users our checkout service can handle before p99 latency breaks 500ms, and get a report we can show to capacity planning. Which JVM tool should we use?",
+      "expected_baseline_answer": "Confidently recommends Gatling, JMeter, or k6. Load testing is explicitly out of scope for this router (README:124), so the claimed behaviour is to say it is off-map rather than route. A baseline will essentially never refuse."
+    },
+    {
+      "id": "P02",
+      "sub_suite": "protocol",
+      "key": "",
+      "expect_off_map": true,
+      "prompt": "We're adding a Scala module alongside our Java services and want mutation testing coverage for it too. What should we wire into the build for the Scala side?",
+      "expected_baseline_answer": "Recommends Stryker4s or similar. Scala is outside this toolbox's stated scope (Java/Kotlin), so the claimed behaviour is to say so."
+    },
+    {
+      "id": "P03",
+      "sub_suite": "protocol",
+      "key": "",
+      "expect_verify_version": true,
+      "prompt": "Is the JUnit Vintage engine gone yet, or can we still run our old JUnit 4 tests through the platform? We're planning a migration and need to know how much runway we have.",
+      "expected_baseline_answer": "States a version fact flatly. The skill's Currency protocol (SKILL.md:44-51, stamped 2026-07) claims it will flag version-sensitive answers and verify against current release notes rather than asserting from a stamped row."
+    },
+    {
+      "id": "P04",
+      "sub_suite": "protocol",
+      "key": "",
+      "expect_verify_version": true,
+      "prompt": "Has Mockito changed its default mock-maker again in the latest release? I want to know before I pin a version in our BOM.",
+      "expected_baseline_answer": "Answers from training data with no currency caveat. 'In the latest release' is precisely the shape the Currency rule exists for."
+    },
+    {
+      "id": "P05",
+      "sub_suite": "protocol",
+      "key": "assertj",
+      "expect_off_map": false,
+      "prompt": "I'm comparing BigDecimal money amounts in tests and equals() keeps failing on scale - 10.00 versus 10.0. What should I be using to assert these?",
+      "expected_baseline_answer": "OVER-REFUSAL CONTROL. This is squarely on-map (assertion libraries; AssertJ's isEqualByComparingTo). A skill that has learned to say 'off-map' too readily will wrongly refuse here, and refusing is only a win when the refusal is correct."
+    }
+  ]
+}
