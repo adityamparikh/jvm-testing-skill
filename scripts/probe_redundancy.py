@@ -199,8 +199,14 @@ def grade_claim(claim: dict, record: dict, model: str, timeout: int, budget: flo
         record["cost"] += cost
         if payload:
             for verdict in payload.get("verdicts", []):
-                if isinstance(verdict.get("index"), int):
-                    scores[verdict["index"]] = verdict
+                index = verdict.get("index")
+                # Range-check, not just type-check. A hallucinated index like 99
+                # would otherwise fill a slot that does not exist, let
+                # len(scores) reach len(flat), end the retry loop early, and
+                # leave a real response silently unscored while reporting zero
+                # ungraded.
+                if isinstance(index, int) and 0 <= index < len(flat):
+                    scores[index] = verdict
         if len(scores) == len(flat):
             break
 

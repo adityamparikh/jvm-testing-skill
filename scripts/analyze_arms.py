@@ -200,14 +200,11 @@ def main() -> int:
                     k: c[k] for k in ("n_cases", "mean_base", "mean_test", "delta_all", "sign")
                 }
 
-    # Ceiling is a property of the eval SET, not of one arm, so measure it
-    # against the best arm each case achieved. Taking it from contrasts[0] made
-    # the headline depend on which arm happened to sort first.
+    # Ceiling is a property of the eval SET: a case that every arm aces cannot
+    # tell arms apart, whatever the skill does. So the test is min across arms,
+    # not max and not the base arm. "Some arm aced it" would just mean solvable.
     total = len(rates)
-    ceiling_n = sum(
-        1 for r in rates.values()
-        if min(r.values()) >= CEILING or (r.get(args.base, 0) >= CEILING and max(r.values()) >= CEILING)
-    )
+    ceiling_n = sum(1 for r in rates.values() if r and min(r.values()) >= CEILING)
     report = {
         "source": args.runs,
         "skill_sha": data.get("skill_sha"),
