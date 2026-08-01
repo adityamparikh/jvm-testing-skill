@@ -82,11 +82,22 @@ isn't always-loaded:
 | `.github/instructions/jvm-testing.instructions.md` | GitHub Copilot | `applyTo` globs — test sources only |
 | `.cursor/rules/jvm-testing.mdc` | Cursor | `globs` + `alwaysApply: false` — auto-attaches on test files |
 
-Each carries a compact problem→tool index and the traps worth knowing up front, then
-points at `SKILL.md` for the tie-breakers — which are the actual value. **Two
-caveats:** a pointer only works if the agent chooses to open the file, which is
-weaker than Claude's native loading; and the index is mirrored in three places, so
-adding or removing a tool means updating all three alongside `SKILL.md`.
+**None of them restate the tool list.** A copy would drift from the router the first
+time a tool is added or dropped, and a stale index is worse than no index — so the
+routing tables live in exactly one place.
+
+How each avoids duplicating them differs, because the mechanisms differ:
+
+- **Cursor** supports `@filename` includes, so the rule is a genuine pointer: it
+  `@`-references `SKILL.md` and the three reference files and states nothing itself.
+- **Copilot** and **AGENTS.md** have no include mechanism, so they instruct the agent
+  to read `SKILL.md` and carry only a handful of silent-failure traps — JUnit 4/Jupiter
+  mixing, `junit-bom` alignment, two mockers on one type, `Thread.sleep`. Those are
+  stable enough to survive tool-list churn, which the index is not.
+
+**One caveat:** for Copilot and AGENTS.md, a pointer only works if the agent actually
+opens the referenced file — weaker than Cursor's `@` includes or Claude's native
+loading.
 
 ## Coverage
 
