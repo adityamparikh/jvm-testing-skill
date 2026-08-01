@@ -38,6 +38,11 @@ from pathlib import Path
 CEILING = 0.9
 FLOOR = 0.1
 DISCRIMINATING = 0.3
+# A regression has to clear this to be called "inverted". At 3-5 reps the rate
+# granularity is 0.2-0.33, so a single flipped rep already moves a case by more
+# than a rounding error. Flagging that as "the skill actively hurts" would bury
+# the real regressions in noise, and this label is the one that gets acted on.
+INVERTED = 0.25
 PLAUSIBILITY_WEIGHT = {"common": 3, "occasional": 2, "rare": 1}
 
 
@@ -66,12 +71,20 @@ def bootstrap_ci(deltas: list[float], draws: int, seed: int) -> tuple[float, flo
 
 
 def classify(p_base: float, p_test: float) -> str:
-    if p_test < p_base:
-        return "inverted"
+    """Order matters here.
+
+    Ceiling and floor are checked before inverted, because a case where both
+    arms are near-perfect is a case that cannot discriminate - and calling a
+    1.0-vs-0.8 pair "the skill is actively hurting" turns one flipped rep into
+    the loudest finding in the report. Inverted then needs a real magnitude for
+    the same reason.
+    """
     if p_base >= CEILING and p_test >= CEILING:
         return "ceiling"
     if p_base <= FLOOR and p_test <= FLOOR:
         return "floor"
+    if p_base - p_test >= INVERTED:
+        return "inverted"
     if p_test - p_base >= DISCRIMINATING:
         return "discriminating"
     return "weak"
@@ -187,8 +200,14 @@ def main() -> int:
                     k: c[k] for k in ("n_cases", "mean_base", "mean_test", "delta_all", "sign")
                 }
 
+    # Ceiling is a property of the eval SET, not of one arm, so measure it
+    # against the best arm each case achieved. Taking it from contrasts[0] made
+    # the headline depend on which arm happened to sort first.
     total = len(rates)
-    ceiling_n = contrasts[0]["classes"]["ceiling"] if contrasts else 0
+    ceiling_n = sum(
+        1 for r in rates.values()
+        if min(r.values()) >= CEILING or (r.get(args.base, 0) >= CEILING and max(r.values()) >= CEILING)
+    )
     report = {
         "source": args.runs,
         "skill_sha": data.get("skill_sha"),

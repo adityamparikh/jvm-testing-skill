@@ -7,18 +7,26 @@ model follows the pointer, finds nothing, and silently loses the entire depth
 layer of the skill. Nothing in the normal authoring loop surfaces this — the
 repo is fine, only the *packaged* or *installed* copy is broken.
 
-Checks:
-  1. SKILL.md exists and has `name` and `description` in YAML frontmatter.
-  2. Every bundled-resource pointer (references/, scripts/, assets/) mentioned
-     in any markdown file in the package resolves to a file that exists.
-  3. Every file under references/ is reachable from SKILL.md, directly or
-     transitively. An unreachable reference file is dead weight: it costs
-     repository maintenance but the model is never routed to it.
+Checks, and what each one does to the exit code:
+
+  1. FAIL - SKILL.md exists and has `name` and `description` in YAML frontmatter.
+  2. FAIL - Every bundled-resource pointer (references/, scripts/, assets/)
+     mentioned in any markdown file resolves to a file that exists.
+  3. WARN - Every file under references/ is reachable from SKILL.md, directly or
+     transitively.
+  4. NOTE - Pointers into a *different* skill's files, reported but not resolved.
+
+Only 1 and 2 fail the build by default. A dangling pointer actively misroutes
+the model to a file that is not there, which is a broken package; an
+unreachable reference file is only dead weight, which is worth knowing about
+but not worth blocking a release over. Pass --strict to fail on warnings too,
+which is the right setting for a CI job that wants the repository kept tidy.
 
 Usage:
-    python scripts/verify_skill_package.py [SKILL_DIR]
+    python scripts/verify_skill_package.py [SKILL_DIR] [--strict]
 
-SKILL_DIR defaults to the repo root. Exits 0 if clean, 1 if any check fails.
+SKILL_DIR defaults to the repo root. Exit 0 means every check that can fail
+passed; with --strict it also means there were no warnings.
 """
 
 from __future__ import annotations
@@ -111,6 +119,19 @@ def reachable_from_skill_md(skill_dir: Path) -> set[str]:
     return seen
 
 
+def package_markdown(skill_dir: Path) -> list[Path]:
+    """The markdown that actually ships: SKILL.md plus the resource dirs."""
+    files = []
+    skill_md = skill_dir / "SKILL.md"
+    if skill_md.is_file():
+        files.append(skill_md)
+    for resource in RESOURCE_DIRS:
+        directory = skill_dir / resource
+        if directory.is_dir():
+            files.extend(m for m in directory.rglob("*.md") if ".git" not in m.parts)
+    return files
+
+
 def discover_skill_dir(repo_root: Path) -> Path | None:
     """Locate the skill package within a repo.
 
@@ -125,8 +146,10 @@ def discover_skill_dir(repo_root: Path) -> Path | None:
 
 
 def main() -> int:
-    if len(sys.argv) > 1:
-        skill_dir = Path(sys.argv[1]).resolve()
+    argv = [a for a in sys.argv[1:] if a != "--strict"]
+    strict = "--strict" in sys.argv
+    if argv:
+        skill_dir = Path(argv[0]).resolve()
     else:
         repo_root = Path(__file__).resolve().parent.parent
         found = discover_skill_dir(repo_root)
@@ -145,12 +168,15 @@ def main() -> int:
     fields, frontmatter_errors = parse_frontmatter(skill_md)
     errors.extend(frontmatter_errors)
 
-    # Check 2 — every local pointer in every markdown file resolves.
+    # Check 2 — every local pointer in the PACKAGE resolves.
+    #
+    # Scope matters: a repo root can hold both the payload and development
+    # material (evals/, docs about the harness). Only what package.sh actually
+    # ships is verified, otherwise prose in a dev README that happens to name a
+    # path can fail a package that is perfectly fine.
     dangling: list[tuple[str, str]] = []
     external: list[tuple[str, str]] = []
-    for md in sorted(skill_dir.rglob("*.md")):
-        if ".git" in md.parts:
-            continue
+    for md in sorted(package_markdown(skill_dir)):
         rel = md.relative_to(skill_dir)
         local, cross_skill = find_pointers(md.read_text(encoding="utf-8"))
         for pointer in sorted(local):
@@ -190,6 +216,8 @@ def main() -> int:
         for orphan in orphans:
             print(f"    {orphan}")
         print("\n  Nothing routes the model to these, so they are never loaded.")
+        if strict:
+            errors.append("unreachable reference files (--strict)")
 
     if external:
         print(f"\nNOTE  {len(external)} cross-skill pointer(s), not verified here:")
@@ -204,7 +232,10 @@ def main() -> int:
     if errors:
         return 1
 
-    print("\nOK  package is internally consistent")
+    if orphans:
+        print("\nOK  no dangling pointers (warnings above; re-run with --strict to fail on them)")
+    else:
+        print("\nOK  package is internally consistent")
     return 0
 
 

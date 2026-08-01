@@ -185,22 +185,34 @@ def grade_claim(claim: dict, record: dict, model: str, timeout: int, budget: flo
     blocks = "\n\n".join(
         f"--- RESPONSE {i} ---\n{(text or '(empty)')[:4000]}" for i, text in enumerate(flat)
     )
-    payload, cost = run_claude(
-        GRADER_PROMPT.format(claim=claim["claim"], answer_key=claim["answer_key"], responses=blocks),
-        model, GRADER_SCHEMA, timeout, budget,
-    )
-    record["cost"] += cost
+    prompt = GRADER_PROMPT.format(
+        claim=claim["claim"], answer_key=claim["answer_key"], responses=blocks)
 
-    scores = {}
-    if payload:
-        for verdict in payload.get("verdicts", []):
-            scores[verdict["index"]] = verdict
+    # Retry, because grader calls fail transiently under concurrency. An earlier
+    # run lost 79% of its verdicts this way and the losses were scored as
+    # "absent" - i.e. as the model not knowing the material - which is the
+    # direction that makes the skill look necessary. A grader failure is missing
+    # data, never evidence.
+    scores: dict[int, dict] = {}
+    for _attempt in range(MAX_ATTEMPTS):
+        payload, cost = run_claude(prompt, model, GRADER_SCHEMA, timeout, budget)
+        record["cost"] += cost
+        if payload:
+            for verdict in payload.get("verdicts", []):
+                if isinstance(verdict.get("index"), int):
+                    scores[verdict["index"]] = verdict
+        if len(scores) == len(flat):
+            break
 
+    # Anything still missing is marked ungraded and dropped from the rate rather
+    # than counted as a miss.
     n = len(record["responses"]["asked"])
+    ungraded = {"verdict": "ungraded", "evidence": "grader returned no verdict for this response"}
     record["verdicts"] = {
-        "asked": [scores.get(i, {"verdict": "absent", "evidence": "ungraded"}) for i in range(n)],
-        "task": [scores.get(i, {"verdict": "absent", "evidence": "ungraded"}) for i in range(n, len(flat))],
+        "asked": [scores.get(i, dict(ungraded)) for i in range(n)],
+        "task": [scores.get(i, dict(ungraded)) for i in range(n, len(flat))],
     }
+    record["ungraded"] = len(flat) - len(scores)
     return record
 
 
@@ -211,12 +223,13 @@ POINTS = {"knows": 1.0, "partial": 0.5, "wrong": 0.0, "absent": 0.0}
 
 
 def rate(verdicts: list[dict]) -> float | None:
-    """None, not 0.0, when there is nothing to score. A claim with no valid
+    """None, not 0.0, when there is nothing to score. A claim with no gradeable
     responses has no measurement; reporting it as 0% known would be a fabricated
     data point that happens to favour keeping the skill."""
-    if not verdicts:
+    scored = [v for v in verdicts if v["verdict"] in POINTS]
+    if not scored:
         return None
-    return sum(POINTS[v["verdict"]] for v in verdicts) / len(verdicts)
+    return sum(POINTS[v["verdict"]] for v in scored) / len(scored)
 
 
 def verdict_for(r_asked: float, r_task: float) -> str:
@@ -284,7 +297,13 @@ def main() -> int:
             if done % 5 == 0 or done == len(claims):
                 log(f"  probed {done}/{len(claims)}")
 
-    ungraded = [c for c in claims if "verdicts" not in records[c["id"]]]
+    def needs_grading(rec: dict) -> bool:
+        if "verdicts" not in rec:
+            return True
+        return any(v["verdict"] in ("ungraded",) or v.get("evidence") == "ungraded"
+                   for k in ("asked", "task") for v in rec["verdicts"][k])
+
+    ungraded = [c for c in claims if needs_grading(records[c["id"]])]
     log(f"Grading {len(ungraded)} claims ({len(claims) - len(ungraded)} already graded)...")
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {
@@ -334,6 +353,7 @@ def main() -> int:
         "runs_per_probe": args.runs,
         "total_cost_usd": round(total_cost, 2),
         "invalid_runs_excluded": total_invalid,
+        "ungraded_responses": sum(r.get("ungraded", 0) for r in records.values()),
         "claims_dropped_no_data": dropped,
         "claims": results,
     }, indent=2) + "\n")
