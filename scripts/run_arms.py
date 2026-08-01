@@ -92,6 +92,10 @@ def build_arm_cmd(arm: str, prompt: str, schema: str, ctx: dict) -> list[str]:
     elif arm == "A2":
         cmd += ["--tools", "", "--append-system-prompt", ctx["skill_md"]]
     elif arm == "A3":
+        # --tools is variadic, so these are three tool names, not one name plus
+        # two stray positionals. Verified with a planted file: in this arm the
+        # model uses Glob to find it and Grep to search it. The asymmetry with
+        # the other arms' `--tools ""` reads like a bug and is not one.
         cmd += ["--tools", "Read", "Glob", "Grep",
                 "--add-dir", ctx["skill_copy"],
                 "--append-system-prompt", A3_POINTER.format(skill=ctx["skill_copy"])]
