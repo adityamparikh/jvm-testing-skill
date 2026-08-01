@@ -4,3 +4,5 @@
 __pycache__/
 dist/
 evals/results/
+evals/trigger/results.json
+evals/trigger/run.log
