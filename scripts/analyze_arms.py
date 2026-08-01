@@ -1,0 +1,230 @@
+#!/usr/bin/env python3
+"""Turn arm runs into an honest verdict.
+
+Three things this does that a naive mean over runs does not:
+
+1. **Aggregates to the case before comparing.** Runs within a case share an
+   artifact and a difficulty, so they are correlated. Treating 70 runs as 70
+   independent observations overstates precision by roughly 2-3x and turns
+   noise into significance.
+
+2. **Bootstraps over cases, not runs.** The uncertainty that matters is "would
+   a different set of cases have given a different answer", and resampling runs
+   cannot see that.
+
+3. **Classifies every case by where it sits**, because the mean hides the shape.
+   A +0.20 delta from three cases swinging with eleven ties is a different
+   finding from +0.20 spread evenly, and only one of them generalises.
+
+Ceiling cases - both arms near-perfect - are counted and excluded from the
+headline. They measure the model, not the skill, and leaving them in drags every
+delta toward zero. Inverted cases, where the skill does WORSE than nothing, are
+surfaced separately: they are the most actionable thing in any eval and averaging
+buries them.
+
+Usage:
+    python scripts/analyze_arms.py evals/results/<run>/runs.json
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import random
+import statistics
+from collections import defaultdict
+from pathlib import Path
+
+CEILING = 0.9
+FLOOR = 0.1
+DISCRIMINATING = 0.3
+PLAUSIBILITY_WEIGHT = {"common": 3, "occasional": 2, "rare": 1}
+
+
+def per_case_rates(runs: list[dict]) -> dict[str, dict[str, float]]:
+    """case_id -> arm -> pass rate over that cell's runs."""
+    buckets: dict[str, dict[str, list[bool]]] = defaultdict(lambda: defaultdict(list))
+    for run in runs:
+        buckets[run["case_id"]][run["arm"]].append(bool(run.get("passed")))
+    return {
+        case: {arm: sum(v) / len(v) for arm, v in arms.items() if v}
+        for case, arms in buckets.items()
+    }
+
+
+def bootstrap_ci(deltas: list[float], draws: int, seed: int) -> tuple[float, float]:
+    """Percentile CI by resampling CASES with replacement."""
+    if len(deltas) < 2:
+        return (float("nan"), float("nan"))
+    rng = random.Random(seed)
+    means = []
+    for _ in range(draws):
+        sample = [deltas[rng.randrange(len(deltas))] for _ in deltas]
+        means.append(sum(sample) / len(sample))
+    means.sort()
+    return (means[int(0.025 * draws)], means[int(0.975 * draws)])
+
+
+def classify(p_base: float, p_test: float) -> str:
+    if p_test < p_base:
+        return "inverted"
+    if p_base >= CEILING and p_test >= CEILING:
+        return "ceiling"
+    if p_base <= FLOOR and p_test <= FLOOR:
+        return "floor"
+    if p_test - p_base >= DISCRIMINATING:
+        return "discriminating"
+    return "weak"
+
+
+def contrast(rates: dict, cases: dict, base: str, test: str, draws: int, seed: int) -> dict | None:
+    paired = [(cid, r[base], r[test]) for cid, r in rates.items() if base in r and test in r]
+    if not paired:
+        return None
+
+    classes = {cid: classify(b, t) for cid, b, t in paired}
+    deltas_all = [t - b for _, b, t in paired]
+    non_ceiling = [(cid, b, t) for cid, b, t in paired if classes[cid] != "ceiling"]
+    deltas_nc = [t - b for _, b, t in non_ceiling]
+
+    wins = sum(1 for _, b, t in paired if t > b)
+    losses = sum(1 for _, b, t in paired if t < b)
+    ties = len(paired) - wins - losses
+
+    weighted_num = sum(
+        PLAUSIBILITY_WEIGHT.get(cases.get(cid, {}).get("plausibility", "occasional"), 2) * (t - b)
+        for cid, b, t in paired)
+    weighted_den = sum(
+        PLAUSIBILITY_WEIGHT.get(cases.get(cid, {}).get("plausibility", "occasional"), 2)
+        for cid, _, _ in paired)
+
+    lo, hi = bootstrap_ci(deltas_nc or deltas_all, draws, seed)
+    return {
+        "contrast": f"{test} - {base}",
+        "n_cases": len(paired),
+        "mean_base": round(statistics.mean(b for _, b, _ in paired), 3),
+        "mean_test": round(statistics.mean(t for _, _, t in paired), 3),
+        "delta_all": round(statistics.mean(deltas_all), 3),
+        "delta_excl_ceiling": round(statistics.mean(deltas_nc), 3) if deltas_nc else None,
+        "ci95": [round(lo, 3), round(hi, 3)],
+        "ci_excludes_zero": bool(lo > 0 or hi < 0) if lo == lo else False,
+        "plausibility_weighted_delta": round(weighted_num / weighted_den, 3) if weighted_den else None,
+        "sign": {"wins": wins, "losses": losses, "ties": ties},
+        "classes": {k: sum(1 for v in classes.values() if v == k)
+                    for k in ("ceiling", "floor", "discriminating", "weak", "inverted")},
+        "inverted_cases": [cid for cid, c in classes.items() if c == "inverted"],
+        "ceiling_cases": [cid for cid, c in classes.items() if c == "ceiling"],
+        "per_case": {cid: {"base": b, "test": t, "delta": round(t - b, 3), "class": classes[cid]}
+                     for cid, b, t in paired},
+    }
+
+
+def cost_per_pass(runs: list[dict]) -> dict[str, dict]:
+    out = {}
+    by_arm: dict[str, list[dict]] = defaultdict(list)
+    for run in runs:
+        by_arm[run["arm"]].append(run)
+    for arm, rs in by_arm.items():
+        passed = sum(1 for r in rs if r.get("passed"))
+        tokens = [r.get("tokens", 0) for r in rs]
+        durations = [r.get("duration_ms", 0) for r in rs]
+        out[arm] = {
+            "runs": len(rs),
+            "passed": passed,
+            # Median, not mean: latency and token tails are long and one slow
+            # run should not decide the cost comparison.
+            "median_tokens": int(statistics.median(tokens)) if tokens else 0,
+            "median_duration_ms": int(statistics.median(durations)) if durations else 0,
+            "total_cost_usd": round(sum(r.get("cost", 0) for r in rs), 2),
+            # The only cost metric that trades quality against spend honestly.
+            "tokens_per_passed_case": int(sum(tokens) / passed) if passed else None,
+        }
+    return out
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("runs")
+    parser.add_argument("--cases", help="cases.json, for plausibility weighting and tags")
+    parser.add_argument("--base", default="A0")
+    parser.add_argument("--bootstrap", type=int, default=10000)
+    parser.add_argument("--seed", type=int, default=17)
+    parser.add_argument("--out")
+    args = parser.parse_args()
+
+    data = json.loads(Path(args.runs).read_text())
+    runs = data["runs"]
+    rates = per_case_rates(runs)
+
+    cases: dict[str, dict] = {}
+    if args.cases:
+        for case in json.loads(Path(args.cases).read_text())["cases"]:
+            cases[case["id"]] = case
+
+    arms = sorted({r["arm"] for r in runs})
+    contrasts = [c for arm in arms if arm != args.base
+                 for c in [contrast(rates, cases, args.base, arm, args.bootstrap, args.seed)] if c]
+
+    # Sub-suites and conformance cases are reported apart, never summed: one
+    # measures correctness, the other agreement with the skill's author.
+    subsets: dict[str, dict] = {}
+    tagged = defaultdict(list)
+    for cid, case in cases.items():
+        if case.get("sub_suite"):
+            tagged[f"sub_suite:{case['sub_suite']}"].append(cid)
+        if case.get("conformance"):
+            tagged["conformance"].append(cid)
+        if case.get("off_map"):
+            tagged["off_map"].append(cid)
+    for label, ids in tagged.items():
+        subset_rates = {cid: r for cid, r in rates.items() if cid in ids}
+        for arm in arms:
+            if arm == args.base:
+                continue
+            c = contrast(subset_rates, cases, args.base, arm, args.bootstrap, args.seed)
+            if c:
+                subsets.setdefault(label, {})[c["contrast"]] = {
+                    k: c[k] for k in ("n_cases", "mean_base", "mean_test", "delta_all", "sign")
+                }
+
+    total = len(rates)
+    ceiling_n = contrasts[0]["classes"]["ceiling"] if contrasts else 0
+    report = {
+        "source": args.runs,
+        "skill_sha": data.get("skill_sha"),
+        "model": data.get("model"),
+        "arms": data.get("arms"),
+        "eval_set_quality": {
+            "n_cases": total,
+            "n_ceiling": ceiling_n,
+            "ceiling_fraction": round(ceiling_n / total, 3) if total else None,
+            "note": ("Ceiling cases pass in both arms and measure the model, not the skill. "
+                     "A suite that is mostly ceiling is not measuring what it claims to."),
+        },
+        "contrasts": contrasts,
+        "subsets": subsets,
+        "cost": cost_per_pass(runs),
+        "power_note": (f"With {total} cases this design detects roughly >=0.17 reliably and cannot "
+                       "distinguish +0.05 from zero. Treat the base-vs-full contrast as the single "
+                       "confirmatory test; every other contrast is exploratory."),
+    }
+
+    print(f"{'contrast':16} {'n':>3} {'base':>6} {'test':>6} {'delta':>7} {'ci95':>16}  sign")
+    for c in contrasts:
+        sign = f"+{c['sign']['wins']}/-{c['sign']['losses']}/={c['sign']['ties']}"
+        print(f"{c['contrast']:16} {c['n_cases']:>3} {c['mean_base']:>6.2f} {c['mean_test']:>6.2f} "
+              f"{c['delta_all']:>+7.3f} [{c['ci95'][0]:>+.2f},{c['ci95'][1]:>+.2f}]  {sign}")
+        if c["inverted_cases"]:
+            print(f"    INVERTED (skill worse than baseline): {', '.join(c['inverted_cases'])}")
+        if c["ceiling_cases"]:
+            print(f"    ceiling (excluded from headline): {', '.join(c['ceiling_cases'])}")
+
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(json.dumps(report, indent=2) + "\n")
+        print(f"\n-> {args.out}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
