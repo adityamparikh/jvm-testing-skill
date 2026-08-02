@@ -47,13 +47,43 @@ PLAUSIBILITY_WEIGHT = {"common": 3, "occasional": 2, "rare": 1}
 
 
 def per_case_rates(runs: list[dict]) -> dict[str, dict[str, float]]:
-    """case_id -> arm -> pass rate over that cell's runs."""
+    """case_id -> arm -> pass rate, over runs that actually produced an answer.
+
+    Errored runs are DROPPED, not counted as failures. A run that exited non-zero
+    measured nothing, and scoring it as a miss turns infrastructure flakiness into
+    a result. That matters more than it sounds: error rates are not uniform across
+    arms, so the arm that happened to fail least looks best. A diagnose matrix run
+    at high concurrency lost 71% of its runs this way and produced a confident,
+    entirely spurious "the five-line hint is the only thing that helps".
+    """
     buckets: dict[str, dict[str, list[bool]]] = defaultdict(lambda: defaultdict(list))
     for run in runs:
+        if run.get("error") or not run.get("answered", True):
+            continue
         buckets[run["case_id"]][run["arm"]].append(bool(run.get("passed")))
     return {
         case: {arm: sum(v) / len(v) for arm, v in arms.items() if v}
         for case, arms in buckets.items()
+    }
+
+
+def error_audit(runs: list[dict]) -> dict:
+    """Errors per arm. Uneven rates bias the comparison; report them loudly."""
+    tot: dict[str, int] = defaultdict(int)
+    bad: dict[str, int] = defaultdict(int)
+    for run in runs:
+        tot[run["arm"]] += 1
+        if run.get("error") or not run.get("answered", True):
+            bad[run["arm"]] += 1
+    per_arm = {a: {"runs": tot[a], "errored": bad[a], "rate": round(bad[a] / tot[a], 3)}
+               for a in sorted(tot)}
+    overall = sum(bad.values()) / sum(tot.values()) if tot else 0.0
+    rates = [v["rate"] for v in per_arm.values()]
+    return {
+        "per_arm": per_arm,
+        "overall_rate": round(overall, 3),
+        "spread_across_arms": round(max(rates) - min(rates), 3) if rates else 0.0,
+        "trustworthy": bool(overall <= 0.15 and (max(rates) - min(rates) if rates else 0) <= 0.10),
     }
 
 
@@ -205,8 +235,10 @@ def main() -> int:
     # not max and not the base arm. "Some arm aced it" would just mean solvable.
     total = len(rates)
     ceiling_n = sum(1 for r in rates.values() if r and min(r.values()) >= CEILING)
+    audit = error_audit(runs)
     report = {
         "source": args.runs,
+        "error_audit": audit,
         "skill_sha": data.get("skill_sha"),
         "model": data.get("model"),
         "arms": data.get("arms"),
@@ -225,6 +257,10 @@ def main() -> int:
                        "confirmatory test; every other contrast is exploratory."),
     }
 
+    if not audit["trustworthy"]:
+        print(f"!! ERROR RATE {audit['overall_rate']:.0%} overall, spread {audit['spread_across_arms']:.0%} "
+              f"across arms -- results NOT trustworthy: {audit['per_arm']}")
+        print()
     print(f"{'contrast':16} {'n':>3} {'base':>6} {'test':>6} {'delta':>7} {'ci95':>16}  sign")
     for c in contrasts:
         sign = f"+{c['sign']['wins']}/-{c['sign']['losses']}/={c['sign']['ties']}"
