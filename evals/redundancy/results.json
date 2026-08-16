@@ -1,0 +1,1592 @@
+{
+  "skill_dir": "/home/user/jvm-testing-skill/.claude/skills/jvm-testing-toolbox",
+  "subject_model": "claude-opus-5",
+  "grader_model": "claude-sonnet-5",
+  "runs_per_probe": 3,
+  "total_cost_usd": 6.21,
+  "invalid_runs_excluded": 0,
+  "claims_dropped_no_data": 0,
+  "claims": [
+    {
+      "id": "C000",
+      "file": "SKILL.md",
+      "section": "### Test frameworks",
+      "type": "numeric",
+      "claim": "JUnit 6 (GA September 2025) requires Java 17+ and Kotlin 2.2+, so projects on Java 8\u201316 must stay on JUnit 5 (Jupiter).",
+      "answer_key": "JUnit 6 needs Java 17+ (Kotlin 2.2+); on Java 8\u201316 stay on JUnit 5 Jupiter \u2014 same programming model. Bonus: move to 5.14 first, which surfaces 6.0 removals as deprecations.",
+      "r_asked": 0.8333333333333334,
+      "r_task": 0.6666666666666666,
+      "elicitation_gap": 0.167,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "partial",
+            "evidence": "Correctly states Java 17 baseline and recommends staying on JUnit 5.13.x for older Java, but explicitly hedges/disclaims the Kotlin 2.2+ figure ('the Kotlin number less so [confident]'), undermining that part of the key."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States Java 17 and Kotlin 2.2 baseline confidently, recommends staying on JUnit 5.x (5.13.x/5.14.x) for Java 8-16, and notes Jupiter APIs are largely source-compatible (same programming model)."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States Java 17 and Kotlin 2.2 requirement, explicitly recommends the JUnit 5.14.x line (matching the bonus) for older toolchains, and notes API-compatibility."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "States JDK17 baseline and Kotlin 2.x metadata requirement (Kotlin 1.9 fails), recommends staying on the latest 5.x line as a safe interim bump before upgrading Java/Kotlin/JUnit."
+          },
+          {
+            "index": 4,
+            "verdict": "wrong",
+            "evidence": "Correctly states Java 17 baseline and recommends junit-bom 5.14.x, but explicitly asserts 'Kotlin 1.9 itself isn't the blocker here,' contradicting the key's requirement that JUnit 6 needs Kotlin 2.2+."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States Java 17 baseline and that Kotlin-facing artifacts require Kotlin 2.x metadata (explaining why Kotlin 1.9 fails), and explicitly recommends reverting to the 5.14.x line, sequencing JUnit 6 after JDK17/Kotlin2.x."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C001",
+      "file": "SKILL.md",
+      "section": "### Assertion libraries",
+      "type": "procedural",
+      "claim": "JSONAssert compares leniently by default; strict mode (`strictMode`/`JSONCompareMode`) is what enforces array ordering and forbids extra fields.",
+      "answer_key": "Not broken \u2014 JSONAssert is lenient by default (extra fields tolerated, array order ignored); use strict mode / JSONCompareMode.STRICT to enforce array order and reject unexpected fields.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "States the boolean false / default choice maps to LENIENT (extra fields allowed, array order ignored), and STRICT requires true (no extra fields, ordered arrays) \u2014 matches the key precisely."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "'LENIENT (what you get with assertEquals(expected, actual, false), the usual default): extra fields ... allowed, and arrays ... unordered' vs 'STRICT (true): no unexpected fields allowed, and array elements must appear in the same order.'"
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "'LENIENT ... the usual default: extra fields in the actual JSON are ignored, and arrays are compared without regard to order' vs 'STRICT (true): no unexpected fields allowed, and arrays must match in order.'"
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Identifies 'JSONassert's LENIENT mode' as the cause of extra fields being ignored and array order not mattering, and prescribes 'switch to the strict variant (JSONCompareMode.STRICT ...)' to fix it \u2014 matches the key's content though framed as one of several library options."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "Cites 'JSONassert's LENIENT mode' as treating expected as a subset and skipping array ordering, recommending 'Switch to STRICT' \u2014 matches the key."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "'Libraries like JSONassert (LENIENT) ... deliberately treat the expected document as a subset: unexpected extra keys pass, and arrays are matched without regard to order' and recommends 'flip it to strict (e.g. JSONAssert.assertEquals(expected, actual, JSONCompareMode.STRICT))'."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C002",
+      "file": "SKILL.md",
+      "section": "### REST API testing",
+      "type": "antipattern",
+      "claim": "REST Assured's `jsonPath()` uses Groovy GPath, not Jayway JsonPath, so Jayway `$..` expressions must not be copied into it.",
+      "answer_key": "REST Assured uses Groovy GPath, not Jayway JsonPath \u2014 `$..`/`[?(@...)]` syntax doesn't transfer; rewrite in GPath (or extract the body and use Jayway JsonPath separately).",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "States jsonPath() uses Groovy GPath, not Jayway/Goessner JSONPath, and that '$' root, '..' recursive descent, and '[?(@...)]' filters won't work; must use closures instead."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States jsonPath() evaluates Groovy GPath, incompatible with Jayway JSONPath dialect, listing '$', '..', filters as non-working and noting Jayway can be used separately."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States GPath is not compatible with Jayway/Goessner JsonPath, explains '$', '@', '..', '[?(...)]' don't work, and recommends using Jayway library directly on the body string for real JsonPath semantics."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Explains REST Assured uses Groovy GPath not Jayway JsonPath, gives rewrite examples (drop '$.', filters become closures, no '..'), and suggests using com.jayway.jsonpath.JsonPath.read on the raw body as an alternative."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "States RA's JsonPath evaluates Groovy GPath not Jayway JsonPath, gives translation table, and offers using Jayway directly on raw body as alternative."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States RA uses Groovy GPath vs Jayway JsonPath used elsewhere, explains dialect mismatch causes silent null/errors, and offers translating to GPath or using Jayway directly on the body string."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C003",
+      "file": "SKILL.md",
+      "section": "### Real infrastructure (integration / e2e)",
+      "type": "antipattern",
+      "claim": "Testcontainers tests must always set an explicit wait strategy, because \"container started\" \u2260 \"service ready\" and that race is the top cause of flaky integration tests.",
+      "answer_key": "Reject the sleep; the container being started is not the service being ready. Configure an explicit wait strategy (log message / port / HTTP / healthcheck). On Spring Boot 3.1+ wire it with @ServiceConnection.",
+      "r_asked": 0.5,
+      "r_task": 0.5,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "TRIM",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "partial",
+            "evidence": "Correctly explains that Testcontainers' default port-check wait passes before the service is actually ready, and prescribes explicit WaitStrategy options (log message, healthcheck, HTTP). But never addresses rejecting a sleep-based fix, and never mentions Spring Boot 3.1+ @ServiceConnection wiring."
+          },
+          {
+            "index": 1,
+            "verdict": "partial",
+            "evidence": "States the race clearly ('port accepts TCP connections, but the service inside... isn't actually ready') and explicitly says the fix is 'rather than Thread.sleep or the default', listing concrete wait strategies. Never mentions @ServiceConnection/Spring Boot integration."
+          },
+          {
+            "index": 2,
+            "verdict": "partial",
+            "evidence": "Clearly states 'default wait strategy only checks that the mapped port is listening' vs actual readiness, and gives explicit wait-strategy code examples. Does not mention rejecting sleep specifically (no sleep in scope) nor @ServiceConnection."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "partial",
+            "evidence": "Explicitly rejects the sleep ('The sleep treats a symptom... a fixed 2s just moves the flake threshold') and explains container-open-port \u2260 service-ready, recommending readiness checks / Testcontainers module wait strategy. Never mentions Spring Boot @ServiceConnection."
+          },
+          {
+            "index": 4,
+            "verdict": "partial",
+            "evidence": "Explicitly rejects the sleep ('A fixed sleep just moves the race; it doesn't remove it') and gives explicit wait strategies including Testcontainers LogMessageWaitStrategy. Omits any mention of Spring Boot 3.1+ @ServiceConnection."
+          },
+          {
+            "index": 5,
+            "verdict": "partial",
+            "evidence": "Explicitly rejects the fixed sleep ('A fixed two-second sleep just moves the failure rate') and recommends readiness gates / Testcontainers built-in wait strategy for Postgres. Does not mention @ServiceConnection or Spring Boot wiring."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C004",
+      "file": "SKILL.md",
+      "section": "### Mocking & stubbing",
+      "type": "numeric",
+      "claim": "Since Mockito 5 the inline mock-maker is the default, so final classes and static methods \u2014 including Kotlin's final-by-default classes \u2014 mock with no extra dependency.",
+      "answer_key": "Unnecessary on Mockito 5+ \u2014 inline mock-maker is already the default, so final classes (all non-open Kotlin classes) and statics mock with no extra dependency or resource file. Drop both.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "States inline mock maker is default since Mockito 5.0.0, and that before that inline was opt-in via mockito-inline artifact or MockMaker resource file; final classes/methods, static methods, and constructors now mockable by default."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States inline mock maker is default since 5.0, replacing the need to opt in via mockito-inline artifact or MockMaker file; final classes, final methods, enums, and static methods now mockable out of the box."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States Mockito 5.0.0 switched default MockMaker to inline (previously opt-in mockito-inline artifact); final classes/methods and static methods 'work without adding a separate dependency.'"
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Directly states inline mock maker is default since Mockito 5, mockito-inline artifact is deprecated/redundant, and the MockMaker resource file restates the default; recommends dropping both."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "States inline mock maker is default since Mockito 5.0, so mockito-inline dependency and resource file are no-ops/redundant; recommends deleting both."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States inline mock maker is default since Mockito 5.0, mockito-inline is deprecated/empty shim, and the MockMaker resource file just re-asserts the default; recommends removing both."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C005",
+      "file": "SKILL.md",
+      "section": "### Kotlin on the JVM",
+      "type": "procedural",
+      "claim": "A hot flow (StateFlow/SharedFlow) never completes so `toList()` hangs; collect it in `TestScope.backgroundScope` with `UnconfinedTestDispatcher` so the collector is live before the first emission.",
+      "answer_key": "Hot streams never complete, so toList()/last() hangs. Collect in TestScope.backgroundScope (cancelled at test end) using UnconfinedTestDispatcher so the collector is subscribed before the first emission. Cold finite flows are the case where in-runTest toList()/first()/last() is fine.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Correctly explains hot flows never complete so toList()/collect suspend forever (UncompletedCoroutinesError/hang), and gives the fix: launch collection in backgroundScope with UnconfinedTestDispatcher(testScheduler) so it 'is subscribed before doSomething() runs rather than sitting queued', with backgroundScope auto-cancelled at test end."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States hot flows never complete so toList()/first() in the test body hangs or leaves UncompletedCoroutinesError, then fixes with backgroundScope.launch(UnconfinedTestDispatcher(...)) { flow.toList(...) }, explaining backgroundScope is cancelled at test end and 'the unconfined dispatcher makes the collector subscribe eagerly so you don't miss the first emission.'"
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "Explicitly gives the fix (backgroundScope.launch(UnconfinedTestDispatcher(...)) { flow.toList(...) }) with correct rationale that backgroundScope is cancelled when runTest finishes and the unconfined dispatcher makes the collector 'subscribed before you trigger the emissions', and separately explains the cold-flow toList() approach fails specifically because StateFlow/SharedFlow never complete (contrasting with cold flows working)."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "States the hot StateFlow never completes so toList() hangs until timeout, notes 'Repository flows are cold and finite, which is why the same pattern works there', and gives backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) fix noting backgroundScope is cancelled at test end and 'the unconfined dispatcher matters so collection starts before you trigger the action.'"
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "States StateFlow never completes so toList() hangs until timeout while 'repository-backed tests pass because those are cold flows that terminate', then gives backgroundScope.launch(UnconfinedTestDispatcher(...)) fix with backgroundScope auto-cancelled at test end."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States StateFlow/SharedFlow is hot and never completes so toList() suspends forever, contrasts with cold repository streams that terminate ('which is why the same pattern works there'), and gives backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) fix noting backgroundScope auto-cancellation and that the collector must be active before triggering actions."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C006",
+      "file": "SKILL.md",
+      "section": "### Behaviour-driven testing",
+      "type": "procedural",
+      "claim": "Cucumber 7.x should be run via the JUnit 5 Platform Suite (`@Suite` + `@IncludeEngines(\"cucumber\")`), not the legacy JUnit 4 runner.",
+      "answer_key": "Replace the JUnit 4 runner with the JUnit 5 Platform Suite: @Suite + @IncludeEngines(\"cucumber\") (plus @SelectClasspathResource/glue config) on the cucumber-junit-platform-engine.",
+      "r_asked": 0.8333333333333334,
+      "r_task": 1.0,
+      "elicitation_gap": -0.167,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Explicitly states using @Suite + @IncludeEngines(\"cucumber\") plus @SelectClasspathResource from junit-platform-suite-engine to replace the JUnit 4 runner."
+          },
+          {
+            "index": 1,
+            "verdict": "partial",
+            "evidence": "Mentions a suite class with @Suite + @SelectClasspathResource(\"features\") from junit-platform-suite-engine but never mentions @IncludeEngines(\"cucumber\")."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "Provides code with @Suite, @IncludeEngines(\"cucumber\"), @SelectClasspathResource, and @ConfigurationParameter, explicitly replacing the JUnit 4 runner."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Provides code with @Suite, @IncludeEngines(\"cucumber\"), @SelectClasspathResource as the preferred replacement for @RunWith(Cucumber.class)."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "Recommends switching to cucumber-junit-platform-engine with @Suite, @IncludeEngines(\"cucumber\"), @SelectClasspathResource code sample."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "Provides the preferred fix with @Suite, @IncludeEngines(\"cucumber\"), @SelectClasspathResource replacing the JUnit 4 runner."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C007",
+      "file": "SKILL.md",
+      "section": "## How to use this skill",
+      "type": "curation",
+      "claim": "The skill deliberately lists no tool that requires a second JUnit Platform engine \u2014 a mixed Java/Kotlin module runs Jupiter as its only engine, and that exclusion is a stated constraint rather than an oversight.",
+      "answer_key": "No \u2014 run JUnit Jupiter as the only engine; libraries may vary per file, engines must not. Tools needing a second Platform engine (e.g. Kotest/Spek) are deliberately absent from the toolbox, not merely unlisted. Keep MockK/Kotlin libraries on Jupiter instead.",
+      "r_asked": 0.16666666666666666,
+      "r_task": 1.0,
+      "elicitation_gap": -0.833,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "KEEP",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "absent",
+            "evidence": "Refuses to answer, claims no skill content available, asks user to paste it. Never addresses the engine-exclusion content."
+          },
+          {
+            "index": 1,
+            "verdict": "absent",
+            "evidence": "Same refusal pattern as response 0; no substantive claim about engines/tools is made."
+          },
+          {
+            "index": 2,
+            "verdict": "partial",
+            "evidence": "Disclaims access but then hedges with a guessed general convention ('one test engine per module... rules out tools that bring their own runner'), gesturing at the right idea without committing to it or mentioning that such tools are deliberately excluded from the toolbox, or the library-vs-engine distinction with MockK."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Concludes 'My default recommendation for a mixed module is no' and advises using JUnit 5's @Nested/@DisplayName plus an assertion library (Strikt/AssertJ/kotlin.test) 'rather than a second test engine' \u2014 matches the key's 'engines must not vary, libraries may.'"
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "Explicitly states 'keep JUnit 5 as the single engine and pull in kotest-assertions-core (just the assertion library, no runner)' \u2014 directly matches the key's guidance to run Jupiter only while letting libraries vary."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "Recommends getting the readability win from JUnit 5 ('@Nested classes plus backticked method names') rather than adding a second engine, and reserves a second engine only for Kotlin-only modules \u2014 matches the key's stance that engines must not vary in a mixed module while assertion style can."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C008",
+      "file": "references/kotlin.md",
+      "section": "## MockK vs Mockito (+ mockito-kotlin)",
+      "type": "numeric",
+      "claim": "Mocking final-by-default Kotlin classes with Mockito needs no extra dependency because the inline mock-maker has been the default since Mockito 5.",
+      "answer_key": "Inline mock-maker is default since Mockito 5; final Kotlin classes mock out of the box, so the MockMaker resource file and the added MockK dependency are unnecessary for this reason.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Mockito 5.0.0 switched the default MockMaker ... to the inline mock maker ... From Mockito 5 on, mocking final Kotlin classes and methods works out of the box."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "Mockito 5.0.0 switched the default mock maker to the inline one ... With Mockito 5 you can mock final classes and final methods out of the box."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "Mockito 5.0.0 ... makes the inline mock maker the default ... With the inline mock maker ... final classes and final methods mock normally."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "since Mockito 5 (early 2023) `mock-maker-inline` is the *default* mock maker ... if it says `mock-maker-inline`, delete it as dead config ... If it was just final classes, drop both changes."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "since 5.0 the inline mock maker is the default, so final Kotlin classes are mockable out of the box. That makes the `org.mockito.plugins.MockMaker` file redundant ... ask them to drop the MockMaker file ... split the MockK adoption into its own PR."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "Since Mockito 5, the inline mock maker is the default, so final classes and methods ... mock fine out of the box. The `org.mockito.plugins.MockMaker` file is either a no-op ... or actively harmful ... it should come out."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C009",
+      "file": "references/kotlin.md",
+      "section": "## MockK vs Mockito (+ mockito-kotlin)",
+      "type": "procedural",
+      "claim": "The constraint is one mocking framework per type, not per module \u2014 Mockito in Java tests and MockK in Kotlin tests within the same module is a normal, acceptable state.",
+      "answer_key": "Mixing across a module is fine; only mocking the same type with two frameworks is the problem. No blanket migration needed \u2014 enforce one mocker per type and accept the two mental models deliberately.",
+      "r_asked": 0.6666666666666666,
+      "r_task": 0.5,
+      "elicitation_gap": 0.167,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "TRIM",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "States the actual conflict occurs when 'two general-purpose mocking frameworks [compete] over the same collaborators' (i.e., same type), and that above that level \u2014 package, module, or repo \u2014 mixing is 'legitimately fine,' citing 'a Kotlin module on MockK alongside Java modules on Mockito' as a normal state, with exceptions treated as deliberate rather than requiring a blanket module-wide standard."
+          },
+          {
+            "index": 1,
+            "verdict": "partial",
+            "evidence": "Frames the hard boundary as 'the individual test class' generally (collisions on runners/lifecycle/verification) rather than specifically the same mocked type, though it does affirm module/package-level mixing is fine and explicitly favors incremental migration over 'a big-bang rewrite,' capturing the no-blanket-migration point but missing the type-specific framing."
+          },
+          {
+            "index": 2,
+            "verdict": "partial",
+            "evidence": "Initially recommends standardizing 'one framework per test file, ideally per module' (implying module-level uniformity is preferred), which is in tension with the key, though it later concedes 'it's fine to mix at the module or repo level' citing legacy-vs-new as normal; never frames the constraint as being about the same type specifically, and doesn't address the no-blanket-migration point."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "partial",
+            "evidence": "Affirms module-level coexistence is fine ('Mockito and MockK coexist on the same classpath without conflict') and explicitly argues against a blanket migration, but frames the whole issue as purely stylistic with no technical constraint at all, never identifying that mocking the same type with two frameworks is the actual problem."
+          },
+          {
+            "index": 4,
+            "verdict": "partial",
+            "evidence": "States the frameworks 'coexist in the same module and even the same build without issue' and pushes back against a blanket migration in favor of an incremental, language-based convention, but never articulates that the real constraint is about not double-mocking the same type."
+          },
+          {
+            "index": 5,
+            "verdict": "partial",
+            "evidence": "Confirms module-level coexistence is fine and opposes blanket migration ('don't do it, at least not as a release blocker'), and proposes a convention with 'no mixing within a file,' which gestures toward a finer-grained (type-adjacent) constraint but doesn't explicitly frame it as being about the same mocked type."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C010",
+      "file": "references/kotlin.md",
+      "section": "## Coroutine testing: kotlinx-coroutines-test",
+      "type": "tool_choice",
+      "claim": "StandardTestDispatcher queues newly launched coroutines until the scheduler is advanced (advanceUntilIdle/advanceTimeBy/runCurrent), while UnconfinedTestDispatcher starts them eagerly until their first suspension.",
+      "answer_key": "Use StandardTestDispatcher (coroutines queued, not run) and step the scheduler with runCurrent/advanceTimeBy/advanceUntilIdle between assertions; UnconfinedTestDispatcher runs eagerly and skips past the intermediate state.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Explicitly states StandardTestDispatcher queues coroutines with nothing running until runCurrent/advanceTimeBy/advanceUntilIdle, contrasts with UnconfinedTestDispatcher running eagerly until first suspension, and recommends stepping with runCurrent/advanceUntilIdle between assertions to observe intermediate state."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States StandardTestDispatcher runs nothing until you explicitly yield control via runCurrent/advanceUntilIdle/advanceTimeBy, UnconfinedTestDispatcher runs eagerly until first suspension, and explains stepping between assertions (Loading then runCurrent/advanceUntilIdle then Success)."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "Clearly explains StandardTestDispatcher queues coroutines until scheduler advanced, UnconfinedTestDispatcher runs eagerly until first suspension, and recommends stepping the scheduler to inspect intermediate states."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Says to use StandardTestDispatcher because UnconfinedTestDispatcher 'runs the coroutine eagerly through its first real suspension point', and demonstrates stepping with runCurrent() then advanceUntilIdle() between assertions to observe the loading state."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "Explicitly states StandardTestDispatcher means 'nothing runs until you advance it', notes UnconfinedTestDispatcher is eager, and explains 'runCurrent() executes the already-queued work and stops at the suspension; advanceUntilIdle() would blow straight past it.'"
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "Identifies UnconfinedTestDispatcher as eager, recommends StandardTestDispatcher, and demonstrates/explains stepping with runCurrent() to reach the suspension point before asserting, then advanceUntilIdle() to finish."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C011",
+      "file": "references/kotlin.md",
+      "section": "## Coroutine testing: kotlinx-coroutines-test",
+      "type": "tool_choice",
+      "claim": "runTest's virtual time only skips delays your own code issues; waiting on external systems (Testcontainers, HTTP endpoints, brokers) still requires Awaitility, and blocking inside runTest stalls the virtual clock.",
+      "answer_key": "Virtual time skips that delay outright \u2014 it can't wait for external services. Poll with Awaitility (outside/around the suspending work); don't block inside runTest, which stalls the virtual clock and hangs or burns real time.",
+      "r_asked": 0.8333333333333334,
+      "r_task": 0.5,
+      "elicitation_gap": 0.333,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "COMPRESS",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "partial",
+            "evidence": "Explains virtual time skipping and gives a real-time polling fix (withContext(Dispatchers.IO)+withTimeout+retry loop, Testcontainers wait strategies), but never states the risk that a naive poll/blocking attempt under virtual time will busy-spin or hang and burn real time -- it only notes the scheduler 'fast-forwards past the wait,' missing the explicit 'stalls the clock / burns real time' failure mode."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States runTest's scheduler 'only virtualizes delay for coroutines running on it' and can't help with an out-of-process system; recommends escaping to withContext(Dispatchers.Default) + withTimeout + polling a readiness probe; and explicitly warns that skipping the delay 'turns the wait into a busy spin or a spurious failure' if you don't escape, which captures the stall/burn-real-time risk."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "Explains delay is skipped instantly under virtual time and the scheduler 'knows nothing about' wall-clock external systems, explicitly notes 'a poll loop under virtual time completes in microseconds ... or spins ... no matter how much virtual time you advance,' and prescribes escaping to a real dispatcher with a real-time timeout -- covering all three parts of the key."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "partial",
+            "evidence": "Correctly explains delay is skipped so the test 'fails instantly' and mentions '(Or use Awaitility / a CountDownLatch signalled by the consumer.)' but never addresses the risk of blocking/spinning inside runTest stalling the clock -- only advises escaping the dispatcher without explaining the danger of not doing so."
+          },
+          {
+            "index": 4,
+            "verdict": "partial",
+            "evidence": "Covers virtual-time skipping and recommends 'Awaitility, or a loop with withContext(Dispatchers.Default)'; gestures at runTest being unsuited for real I/O ('runBlocking is honestly the better wrapper... runTest's delay-skipping and Unconfined-ish eagerness are aimed at deterministic unit tests') but never states that blocking/polling inside runTest stalls the virtual clock and hangs or burns real time."
+          },
+          {
+            "index": 5,
+            "verdict": "partial",
+            "evidence": "Covers virtual-time skipping clearly and explicitly recommends 'Awaitility's await().atMost(...).until{}' plus withContext escape; suggests runBlocking as an alternative for pure I/O tests, but does not explain that blocking/polling inside runTest itself stalls the virtual clock or causes a hang/spin -- that specific mechanism is absent."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C012",
+      "file": "references/kotlin.md",
+      "section": "## Flow testing \u2014 no extra library needed",
+      "type": "antipattern",
+      "claim": "A StateFlow/SharedFlow must not be collected with toList() inside runTest \u2014 it never completes, so the test hangs; collect it in TestScope.backgroundScope.launch paired with UnconfinedTestDispatcher instead.",
+      "answer_key": "Hot flows never complete, so toList() never returns and the test hangs (looks slow, not broken). Collect into a list from backgroundScope.launch { \u2026 } with UnconfinedTestDispatcher so the collector is live before the first emission and is cancelled at test end.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "States toList() on hot flow never returns, causing deadlock/hung coroutine in runTest; gives backgroundScope.launch(UnconfinedTestDispatcher) pattern noting backgroundScope auto-cancels and unconfined dispatcher ensures subscription before emissions."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States hot flows never complete so toList() suspends forever causing 60s timeout hang; provides backgroundScope.launch with UnconfinedTestDispatcher, explains it's cancelled at test end and guarantees subscription before emission."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "Explains toList() suspends forever on hot flow causing hang/timeout; gives backgroundScope.launch(UnconfinedTestDispatcher) fix with explanation of auto-cancellation and pre-emission subscription."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "States StateFlow toList() never returns causing runTest to hang until killed; provides backgroundScope.launch with UnconfinedTestDispatcher, explains cancellation at test end and subscription timing."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "Explains StateFlow never completes so toList() suspends forever, parking the test; gives backgroundScope.launch(UnconfinedTestDispatcher) fix explaining cancellation on test end and pre-action subscription."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States toList() suspends forever on hot flow, test sits until killed; gives backgroundScope.launch(UnconfinedTestDispatcher) fix, explains auto-cancellation and eager collector start before emission."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C013",
+      "file": "references/kotlin.md",
+      "section": "## Flow testing \u2014 no extra library needed",
+      "type": "curation",
+      "claim": "This skill deliberately does not route to a dedicated Flow-testing library such as Turbine, since kotlinx-coroutines-test already covers flow testing.",
+      "answer_key": "No extra dependency \u2014 kotlinx-coroutines-test suffices. The skill deliberately declines to route to Turbine (or similar) because the platform already covers it; Turbine only adds ergonomics like failing on unconsumed emissions.",
+      "r_asked": 0.0,
+      "r_task": 0.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "KEEP",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "absent",
+            "evidence": "Declines to answer, claims no skill content available, asks for clarification without addressing Turbine/kotlinx-coroutines-test question."
+          },
+          {
+            "index": 1,
+            "verdict": "absent",
+            "evidence": "Declines to answer, asks for clarification, never addresses the Turbine vs kotlinx-coroutines-test point."
+          },
+          {
+            "index": 2,
+            "verdict": "absent",
+            "evidence": "Declines to answer, says it would only be guessing, never states the actual stance."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "wrong",
+            "evidence": "Recommends adding app.cash.turbine as 'the standard for Flow testing' alongside kotlinx-coroutines-test, contradicting the skill's deliberate choice not to add Turbine since kotlinx-coroutines-test suffices."
+          },
+          {
+            "index": 4,
+            "verdict": "wrong",
+            "evidence": "Recommends Turbine as 'the standard' dependency for Flow testing, contradicting the skill's stance of deliberately not routing to Turbine."
+          },
+          {
+            "index": 5,
+            "verdict": "wrong",
+            "evidence": "Recommends Turbine as 'the standard' for Flow testing and treats it as necessary, contradicting the skill's deliberate exclusion of Turbine."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C014",
+      "file": "references/kotlin.md",
+      "section": "## Mixed source set: Java and Kotlin in one module",
+      "type": "numeric",
+      "claim": "JUnit 6 runs suspend test functions natively \u2014 requiring Java 17+ and Kotlin 2.2+ \u2014 so no runBlocking wrapper is needed, though runTest is still wanted for virtual time.",
+      "answer_key": "Yes on JUnit 6 (needs Java 17+ / Kotlin 2.2+, both satisfied): suspend test functions run natively, so drop runBlocking \u2014 but keep runTest where virtual time is wanted.",
+      "r_asked": 0.5,
+      "r_task": 0.5,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "TRIM",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "partial",
+            "evidence": "Confirms JUnit 6 native suspend support and states baseline as Java 17 / Kotlin 2.2, but hedges on whether 2.2 is the hard minimum, never confirms the user's own versions satisfy it, and never advises keeping runTest for virtual time."
+          },
+          {
+            "index": 1,
+            "verdict": "partial",
+            "evidence": "States JUnit 6 native suspend support with Java 17 / Kotlin 2.2 baselines, but doesn't confirm the user's versions meet this, and never mentions keeping runTest for virtual time \u2014 only mentions runTest as the prior workaround."
+          },
+          {
+            "index": 2,
+            "verdict": "partial",
+            "evidence": "Confirms native suspend support landed in JUnit 6 with Java 17 baseline, but is vague on Kotlin version ('modern Kotlin 2.x' rather than 2.2), doesn't confirm user's versions are satisfied, and omits the keep-runTest-for-virtual-time guidance."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "partial",
+            "evidence": "Explicitly instructs to keep runTest/TestScope wrappers for virtual time and drop bare runBlocking wrappers due to native suspend support, but never mentions the Java 17+/Kotlin 2.2+ requirement or confirms the user's versions satisfy it."
+          },
+          {
+            "index": 4,
+            "verdict": "wrong",
+            "evidence": "States the baseline as 'Java 17, Kotlin 2.0+', contradicting the key's specific Kotlin 2.2+ requirement, despite otherwise correctly advising to keep runTest for virtual-time tests."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "Confirms JUnit 6 native suspend support with Java 21/Kotlin 2.2 satisfying the Java 17+ baseline, and explicitly instructs not to convert tests needing virtual time \u2014 keep runTest/TestDispatcher for those."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C015",
+      "file": "references/pitfalls.md",
+      "section": "## Framework pitfalls",
+      "type": "antipattern",
+      "claim": "JUnit Jupiter test classes and methods may be package-private, so the `public` modifier carried over from JUnit 4 habit should not be added.",
+      "answer_key": "Jupiter test classes/methods can be package-private; drop the `public` modifier (a JUnit 4 leftover, not required by Jupiter).",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "'they don't need to be public... package-private (the default, no modifier) is the recommended convention'"
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "'they don't need to be public \u2014 package-private (the default) is the conventional choice'"
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "'unlike JUnit 4, they don't have to be public. Package-private is the common convention, and it's what the JUnit team recommends.'"
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "'drop the public modifiers. Jupiter discovers package-private test classes and methods fine, so public is inherited noise from the JUnit 4 convention'"
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "'Drop the public modifiers. JUnit 5 discovers package-private test classes and methods fine; public was a JUnit 4 requirement that no longer applies'"
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "'public on test classes and methods is unnecessary. Jupiter discovers package-private classes and methods fine; the public requirement was a JUnit 4 constraint'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C016",
+      "file": "references/pitfalls.md",
+      "section": "## JUnit 6 migration pitfalls",
+      "type": "numeric",
+      "claim": "JUnit 6 requires Java 17+ and Kotlin 2.2+; projects on Java 8\u201316 should stay on JUnit 5 and migrate the JDK first.",
+      "answer_key": "JUnit 6 needs Java 17+ / Kotlin 2.2+; on Java 11 stay on JUnit 5 (same Jupiter API), upgrade the JDK first, then bump JUnit.",
+      "r_asked": 1.0,
+      "r_task": 0.6666666666666666,
+      "elicitation_gap": 0.333,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "States JUnit 6 baseline is Java 17 for compiling/running tests and Kotlin 2.2 for Kotlin APIs; recommends staying on the JUnit 5.14.x bridge line until the toolchain moves to 17, matching the 'stay on JUnit 5, upgrade JDK first, then bump' guidance."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States Java 17 (up from Java 8) and Kotlin 2.2 baselines, and lists 'stay on JUnit 5.13.x' as the low-risk option if the toolchain can't move yet, consistent with the key."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States Java 17 runtime and Kotlin 2.2 baselines for JUnit 6.0, and recommends staying on the JUnit 5.14.x line (parallel Java 8 baseline) if below those requirements."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Explicitly says JUnit 6.x needs Java 17 and won't run on Java 11; recommends moving to JUnit 5.14.x now, then migrating the full build/runtime to Java 17, then flipping to JUnit 6.x -- matches 'stay on JUnit 5, upgrade JDK first, then bump JUnit' closely, though it doesn't specify the Kotlin 2.2 threshold explicitly."
+          },
+          {
+            "index": 4,
+            "verdict": "partial",
+            "evidence": "Correctly states Java 17 is required and that JUnit 5.14.x is the version to use while on Java 11, but the recommended sequence bumps to JUnit 6 via a split test-only toolchain before doing the 'real' Java 17 migration for main, reversing the 'upgrade the JDK first, then bump JUnit' order in the key, and never states the Kotlin 2.2 baseline explicitly."
+          },
+          {
+            "index": 5,
+            "verdict": "partial",
+            "evidence": "Correctly notes JUnit 6.x raised its baseline to Java 17 and to land on JUnit 5.13.x first, but the overall plan is to permanently split the toolchain (tests on 17, production pinned at --release 11 guarded by CI checks) rather than upgrading the JDK first as the key describes, and never states the Kotlin 2.2 requirement explicitly."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C017",
+      "file": "references/pitfalls.md",
+      "section": "## Assertion pitfalls",
+      "type": "tool_choice",
+      "claim": "REST Assured path expressions use Groovy GPath (e.g. `[0].orders.size()`, `find{...}`), not Jayway JsonPath syntax.",
+      "answer_key": "REST Assured evaluates Groovy GPath, not Jayway JsonPath \u2014 rewrite as `items[0].price` (and use closures like `find{...}` for filtering); don't copy Jayway expressions in.",
+      "r_asked": 0.6666666666666666,
+      "r_task": 1.0,
+      "elicitation_gap": -0.333,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "TRIM",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "'JSON objects are navigated as maps/lists... so JSON paths use GPath rather than JsonPath/Jayway syntax despite the JsonPath class name.' Explicitly contrasts GPath vs Jayway JsonPath and gives a rewrite example plus closure usage (findAll, collect)."
+          },
+          {
+            "index": 1,
+            "verdict": "partial",
+            "evidence": "States REST Assured uses Groovy's GPath and mentions closures (find, findAll, collect), but never explicitly contrasts it with Jayway JsonPath syntax or warns against copying Jayway expressions."
+          },
+          {
+            "index": 2,
+            "verdict": "partial",
+            "evidence": "States REST Assured uses GPath and gives closure examples (findAll), but does not mention Jayway JsonPath at all or warn against using JsonPath syntax."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "'body() in REST Assured evaluates Groovy GPath, not Jayway JsonPath.' Explains why $..items[0].price fails and gives correct rewrite items[0].price plus closure-based find for recursive search."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "'REST Assured's body(...) matcher uses Groovy GPath, not Jayway JsonPath. $..items[0].price is JsonPath syntax, so GPath evaluates it to null' \u2014 explicit and correct, with rewrite and closure example."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "'REST Assured's body(...) evaluates Groovy GPath, not Jayway JsonPath \u2014 so $, .., and recursive descent are meaningless there' \u2014 explicit contrast with rewrite and closure-based find example."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C018",
+      "file": "references/pitfalls.md",
+      "section": "## Mocking pitfalls",
+      "type": "numeric",
+      "claim": "Since Mockito 5 the inline mock-maker is the default in mockito-core (final classes, statics, constructors mock out of the box) and the separate mockito-inline artifact stopped being published after 5.2.",
+      "answer_key": "Mockito 5+ ships the inline mock-maker as the default in mockito-core; final classes/statics/constructors already mock \u2014 remove the mockito-inline dependency (unpublished after 5.2; that advice describes Mockito 4).",
+      "r_asked": 0.6666666666666666,
+      "r_task": 1.0,
+      "elicitation_gap": -0.333,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "TRIM",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "wrong",
+            "evidence": "Claims mockito-inline is 'essentially an empty shim... slated for removal in a future major release' i.e. still published and only deprecated, contradicting the fact that it stopped being published after 5.2."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States inline mock maker is default since 5.0, and mockito-inline 'was published only as an empty shell... then dropped entirely (its last release was... around 5.2.0)', matching unpublished-after-5.2; advises removing mockito-inline."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States mockito-core uses inline mock maker by default, mocking final classes/statics out of the box; mockito-inline 'published for a short while... through 5.2.0... then discontinued'."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "'mockito-inline was discontinued after 5.2.0... Since Mockito 5.0, the inline mock maker is the default in mockito-core, so mocking final classes already works with no extra dependency'; frames prior advice as predating Mockito 5."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "'mockito-inline was folded into mockito-core \u2014 its last release was 5.2.0... Since 5.0 the inline mock maker is the default on the JVM, so mocking final classes (and static methods...) works with just mockito-core.'"
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "'mockito-inline was last published at 5.2.0 and then discontinued... Since Mockito 5.0, the inline mock maker is the default in mockito-core, so final classes (and static methods...) work with no extra dependency.'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C019",
+      "file": "references/pitfalls.md",
+      "section": "## Infrastructure pitfalls",
+      "type": "tool_choice",
+      "claim": "On Spring Boot 3.1+, container connection properties should come from `@ServiceConnection` rather than hand-mapped ports and URLs.",
+      "answer_key": "Replace the manual port/URL mapping with `@ServiceConnection` on the container bean so connection properties are derived from the container and can't drift from the image.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Instructs replacing manual property setting with @ServiceConnection on the container bean, deriving ConnectionDetails automatically without spring.datasource.url wiring."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States to use @ServiceConnection on the container bean instead of manually mapping properties, contributing a ConnectionDetails bean so no URL/username/password wiring is needed."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States to annotate the container bean with @ServiceConnection so Spring Boot derives the JDBC URL, credentials, etc. automatically instead of hand-mapping."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Explicitly says to drop @DynamicPropertySource and use @ServiceConnection, which derives url/username/password/driver from the container so nothing is hand-assembled and there's no hardcoded port."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "States to replace the @DynamicPropertySource block with @ServiceConnection, deriving url/username/password/driver from the container so there's nothing to hand-assemble."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States to drop the hand-built URL and use @ServiceConnection so Boot derives url/username/password/driver from the container, preventing host/port/database-name drift."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C020",
+      "file": "references/pitfalls.md",
+      "section": "## BDD pitfall (Cucumber)",
+      "type": "procedural",
+      "claim": "Cucumber 7.x should be run through the JUnit 5 Platform Suite (`@Suite` + `@IncludeEngines(\"cucumber\")`), not the legacy JUnit 4 runner.",
+      "answer_key": "Drop the JUnit 4 runner; use the JUnit Platform Suite \u2014 `@Suite` with `@IncludeEngines(\"cucumber\")` (junit-platform-suite on the test classpath).",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Explicitly says use cucumber-junit-platform-engine 'not the JUnit 4 @RunWith(Cucumber.class) runner' with junit-platform-suite, and shows @Suite + @IncludeEngines(\"cucumber\") code."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States use cucumber-junit-platform-engine 'not the legacy cucumber-junit JUnit 4 runner', gives @Suite + @IncludeEngines(\"cucumber\") from junit-platform-suite-api."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "Says use cucumber-junit-platform-engine 'not the JUnit 4 @RunWith(Cucumber.class) runner' and shows @Suite + @IncludeEngines(\"cucumber\") with junit-platform-suite added."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "States 'Preferred \u2014 switch to the Platform suite' with @Suite + @IncludeEngines(\"cucumber\"), junit-platform-suite dependency, and explicitly says 'Drop cucumber-junit (the JUnit 4 module) and delete the old @RunWith class.'"
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "'Recommended \u2014 move to the Platform engine' replacing cucumber-junit with cucumber-junit-platform-engine, adding junit-platform-suite, using @Suite + @IncludeEngines(\"cucumber\")."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "'Preferred \u2014 move to the Cucumber JUnit Platform engine' replacing cucumber-junit, dropping the runner class for a @Suite + @IncludeEngines(\"cucumber\") suite with junit-platform-suite on classpath."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C021",
+      "file": "references/pitfalls.md",
+      "section": "## Kotlin pitfalls (beyond the book)",
+      "type": "antipattern",
+      "claim": "A hot flow (StateFlow/SharedFlow) must never be collected with `toList()` in `runTest` because it never completes; collect it in `TestScope.backgroundScope` with `UnconfinedTestDispatcher`.",
+      "answer_key": "Hot flows never complete, so `toList()`/`last()` hangs; collect in `TestScope.backgroundScope` (cancelled at test end) using `UnconfinedTestDispatcher` so the collector is active before the first emission.",
+      "r_asked": 1.0,
+      "r_task": 0.8333333333333334,
+      "elicitation_gap": 0.167,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Explains toList()/collect suspends forever due to hot flow never completing, then gives backgroundScope + UnconfinedTestDispatcher(testScheduler) example and explicitly states 'UnconfinedTestDispatcher matters: it makes the collector start eagerly so it's subscribed before doThing() runs.'"
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States toList suspends forever for hot flows, prescribes backgroundScope.launch(UnconfinedTestDispatcher(...)) { flow.toList(...) } as the fix cancelled with the test, and notes collection must start before emissions of interest."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States toList()/collect suspends forever, gives backgroundScope+UnconfinedTestDispatcher code, and explicitly explains 'backgroundScope avoids runTest waiting on the never-ending job, and UnconfinedTestDispatcher guarantees the collector is subscribed before doThing() runs.'"
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Explains toList suspends forever because hot flow never completes and runTest waits on it, then gives backgroundScope.launch(UnconfinedTestDispatcher(...)) fix noting 'backgroundScope is cancelled when the test body returns' and 'Use an unconfined dispatcher ... so the collector actually runs before you assert.'"
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "States StateFlow never completes so toList() suspends forever, prescribes backgroundScope.launch(UnconfinedTestDispatcher(...)) noting runTest cancels backgroundScope at the end and 'Use an unconfined dispatcher ... so the collector actually starts before you act.'"
+          },
+          {
+            "index": 5,
+            "verdict": "partial",
+            "evidence": "Correctly states StateFlow never completes causing toList to hang, and that backgroundScope is cancelled at the end instead of awaited, and shows backgroundScope.launch(UnconfinedTestDispatcher(...)) in code, but never explains why UnconfinedTestDispatcher is needed (i.e., to make the collector active before the first emission) \u2014 the final dispatcher note refers to a different issue (the view-model's own production dispatcher)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C022",
+      "file": "references/pitfalls.md",
+      "section": "## Kotlin pitfalls (beyond the book)",
+      "type": "curation",
+      "claim": "This skill treats MockK and Mockito coexisting on one mixed-source-set classpath as an accepted cost (choose the mocker per type, not per module); the actual error is using two mockers on the same type.",
+      "answer_key": "Push back: choose per type, not per module \u2014 both on the classpath in a mixed source set is an accepted cost, not an error. MockK for `object`s, extension/top-level functions, controlled suspending answers; Mockito + mockito-kotlin for the rest. The real mistake to avoid is two mockers applied to the same type.",
+      "r_asked": 0.16666666666666666,
+      "r_task": 0.0,
+      "elicitation_gap": 0.167,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "KEEP",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "wrong",
+            "evidence": "Claims the error is mixing frameworks within a single test class, and that the accepted split is 'MockK for Kotlin classes and Mockito for Java classes in separate test classes' \u2014 this is a per-module/per-language split, directly contradicting the key's 'choose per type, not per module' and 'coexisting on classpath is accepted, not an error.'"
+          },
+          {
+            "index": 1,
+            "verdict": "partial",
+            "evidence": "Frames the error as mixing frameworks within one class/file and recommends splitting by language at the module level (contradicting 'per type, not per module'), but it does cite 'MockK stubbing on a Mockito-created mock' as an example \u2014 which is close to the key's real mistake of applying two mockers to the same type/mock."
+          },
+          {
+            "index": 2,
+            "verdict": "wrong",
+            "evidence": "States the accepted arrangement is 'per-language: MockK in Kotlin test sources, Mockito in Java test sources' and the error is 'mixing the two frameworks within a single test class or source set' \u2014 a per-module split, contradicting 'choose per type, not per module' and treating coexistence as an error rather than an accepted cost."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "wrong",
+            "evidence": "Pushes back and defends keeping both mockers (aligns with 'accepted cost'), but the proposed boundary is 'MockK in src/test/kotlin, Mockito in src/test/java' \u2014 an explicit per-module/source-set split, the opposite of the key's 'choose per type, not per module.' No mention of the real error being two mockers on the same type."
+          },
+          {
+            "index": 4,
+            "verdict": "wrong",
+            "evidence": "Pushes back correctly on eliminating one library and cites MockK's need for Kotlin objects, but the proposed rule is 'MockK in Kotlin test sources, Mockito in Java test sources' with a lint rule to enforce it \u2014 again a per-module split contradicting 'per type, not per module,' and never identifies the same-type mixing as the real error."
+          },
+          {
+            "index": 5,
+            "verdict": "wrong",
+            "evidence": "Similarly pushes back and cites MockK's advantage for objects/final classes, but recommends 'MockK for Kotlin tests, Mockito for Java tests' as the boundary \u2014 a per-module split, contradicting the key's core distinction, with no mention of two mockers applied to the same type being the actual mistake."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C023",
+      "file": "references/tool-cards.md",
+      "section": "## Test frameworks",
+      "type": "numeric",
+      "claim": "JUnit 6 requires Java 17+, so projects on Java 8\u201316 must stay on JUnit 5 (which shares the same Jupiter API/packages), and reaching 5.14 first surfaces 6.0 removals as deprecations.",
+      "answer_key": "JUnit 6 needs Java 17+; stay on JUnit 5 on Java 8\u201316; same Jupiter API so it's mostly a version bump later; go to 5.14 first because it reports 6.0 removals as deprecations; use junit-bom, never mixed 5.x/6.x artifacts.",
+      "r_asked": 0.3333333333333333,
+      "r_task": 0.8333333333333334,
+      "elicitation_gap": -0.5,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "KEEP",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "partial",
+            "evidence": "States Java 17 requirement and staying on JUnit 5.14.x, and mentions clearing deprecation warnings before moving to 6, but never mentions junit-bom or the specific point that 5.14 surfaces 6.0 removals as deprecations, nor the shared-API continuity claim."
+          },
+          {
+            "index": 1,
+            "verdict": "partial",
+            "evidence": "Covers Java 17 requirement, staying on 5.14.x, and junit-bom usage, but omits that 5.14 specifically surfaces 6.0 removals as deprecations and never states the Jupiter API is the same/shared."
+          },
+          {
+            "index": 2,
+            "verdict": "wrong",
+            "evidence": "States '5.13.x being the last feature release before 6.0,' contradicting the key's specific claim that 5.14 is the version to target as the bridge release."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "States Java 17 baseline, recommends latest JUnit 5 (5.14.x) via junit-bom, and explicitly says 'JUnit 5.14 flags most of what JUnit 6 removed,' plus notes the eventual bump 'should be close to a no-op' implying shared API."
+          },
+          {
+            "index": 4,
+            "verdict": "partial",
+            "evidence": "Covers Java 17 requirement, JUnit 5.x fallback via junit-bom, and explicitly states 'JUnit 6's Jupiter API is largely source-compatible with 5.x,' but never pins the recommendation to version 5.14 specifically or ties deprecations to that release."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States Java 17 baseline, recommends JUnit 5.14.x via junit-bom, explicitly says '5.14 is deliberately the bridge release \u2014 it deprecates everything removed in 6,' and notes the 5.14\u21926.x bump should be 'close to a version-only change,' capturing the shared-API point."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C024",
+      "file": "references/tool-cards.md",
+      "section": "## Assertion libraries",
+      "type": "procedural",
+      "claim": "JSONAssert's third boolean/JSONCompareMode argument decides comparison strictness \u2014 lenient allows extra fields and any array order, strict enforces exact fields plus array order \u2014 and lenient should be the default for non-brittle tests.",
+      "answer_key": "The boolean/JSONCompareMode strictness flag: lenient ignores extra fields and array ordering, strict requires exact field set and array order; switch to lenient (false / JSONCompareMode.LENIENT) as the default.",
+      "r_asked": 1.0,
+      "r_task": 0.0,
+      "elicitation_gap": 1.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "COMPRESS",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Explicitly states lenient (false/LENIENT) allows extra fields and ignores array order, strict (true/STRICT) requires exact fields and array order, and recommends lenient as the default."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States lenient (false) allows extra fields and ignores array order, strict (true) requires exact field match and array order, and recommends defaulting to lenient."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States false/LENIENT tolerates extra fields and ignores array order, true/STRICT requires exact fields and order, and explicitly says 'Default to LENIENT.'"
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "absent",
+            "evidence": "Discusses general strategies for subset/order-insensitive JSON comparison but never mentions JSONAssert's boolean/JSONCompareMode third argument or its lenient/strict semantics."
+          },
+          {
+            "index": 4,
+            "verdict": "absent",
+            "evidence": "Discusses general schema/field-based comparison strategies but never mentions the JSONAssert boolean/JSONCompareMode flag or its lenient/strict semantics."
+          },
+          {
+            "index": 5,
+            "verdict": "absent",
+            "evidence": "Discusses schema checks, multiset comparison, and other libraries' subset matchers, but never mentions JSONAssert's boolean/JSONCompareMode third argument."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C025",
+      "file": "references/tool-cards.md",
+      "section": "## Mocking",
+      "type": "numeric",
+      "claim": "Since Mockito 5 the inline mock-maker is the default in mockito-core, so final classes, statics and constructors mock with no extra dependency, and the separate mockito-inline artifact stopped being published after 5.2.",
+      "answer_key": "Inline mock-maker has been the mockito-core default since Mockito 5; the separate mockito-inline artifact is unnecessary and unpublished after 5.2; delete the pinned artifact, final/static/constructor mocking keeps working.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "States inline mock maker is default since Mockito 5.0.0, and that mockito-inline was 'discontinued from 5.3.0 onward' (i.e., unpublished after 5.2), advising to depend on mockito-core and drop mockito-inline."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States inline maker is default since 5.0.0, mockito-inline is deprecated/discontinued, 'last published as 5.2.0' before being dropped, and advises removing mockito-inline in favor of mockito-core alone."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States inline maker default since Mockito 5, mockito-inline obsolete with 'final publication was 5.2.0; it is no longer released', and explicitly confirms static and final mocking work via mockito-core alone."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Identifies mockito-inline's final release as 5.2.0, states inline maker became default in mockito-core as of 5.0, instructs to delete mockito-inline dependency, and confirms final-class mocking and mockStatic work with mockito-core 5.x alone."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "States 5.2.0 is mockito-inline's last release (discontinued deliberately), inline maker default in mockito-core since Mockito 5, instructs to delete mockito-inline, and confirms final-class mocking and mockStatic continue working via mockito-core default."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "Confirms 5.2.0 is mockito-inline's last release deliberately, states inline maker is default in mockito-core since 5.0, instructs to delete the mockito-inline dependency, and confirms final-class mocking and mockStatic keep working on mockito-core 5.x alone."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C026",
+      "file": "references/tool-cards.md",
+      "section": "## Real infrastructure",
+      "type": "procedural",
+      "claim": "Testcontainers tests must always declare an explicit wait strategy (e.g. Wait.forHttp(path).forStatusCode(200) or Wait.forLogMessage(regex, n)) because a container being up is not the service being ready \u2014 the single most common cause of flaky integration tests.",
+      "answer_key": "Container started \u2260 service ready; set an explicit wait strategy (Wait.forHttp(...).forStatusCode(200), Wait.forLogMessage(regex, n)) rather than sleeping; align versions via the Testcontainers BOM; on Spring Boot 3.1+ use @ServiceConnection for wiring.",
+      "r_asked": 1.0,
+      "r_task": 0.5,
+      "elicitation_gap": 0.5,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "COMPRESS",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "Explicitly explains that the default wait check confirms port binding not service readiness, and gives concrete Testcontainers wait strategy code (Wait.forLogMessage, Wait.forHttp, Wait.forSuccessfulCommand) instead of sleeping."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "States the default HostPortWaitStrategy only confirms the port is listening, not service readiness, and prescribes explicit Wait.forLogMessage/Wait.forHttp/Wait.forHealthcheck strategies with code."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States 'container started/port open' vs 'service ready' distinction directly and gives explicit Wait.forLogMessage/Wait.forHttp/Wait.forSuccessfulCommand code as the fix."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "partial",
+            "evidence": "Correctly identifies container-started vs ready-to-serve race and recommends readiness gating over sleep, but the concrete fix offered is hand-rolled polling (pg_isready, AdminClient) with only a passing mention that 'Testcontainers' Postgres wait strategy handles this,' not explicit Wait.forHttp/forLogMessage usage."
+          },
+          {
+            "index": 4,
+            "verdict": "partial",
+            "evidence": "Identifies the race between container start and service readiness and advises against sleeping, but the primary fix is generic healthchecks/poll loops, with only a vague aside that 'Testcontainers gives you this out of the box' rather than naming/using Wait.forHttp or Wait.forLogMessage."
+          },
+          {
+            "index": 5,
+            "verdict": "partial",
+            "evidence": "Correctly frames the sleep-vs-race issue and advises readiness gating, mentioning 'Testcontainers' wait strategies handle this' in passing, but the recommended concrete fix is a hand-rolled retry loop (pg_isready, describeCluster) rather than explicit Wait.forHttp/forLogMessage usage."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C027",
+      "file": "references/tool-cards.md",
+      "section": "## REST API",
+      "type": "antipattern",
+      "claim": "REST Assured's jsonPath()/xmlPath() use Groovy GPath expressions, not Jayway JsonPath syntax.",
+      "answer_key": "REST Assured uses Groovy GPath, not Jayway JsonPath; the `$`/`[?(@...)]` syntax won't work \u2014 rewrite as GPath (e.g. items.findAll { it.price > 1999 }); payload is fine.",
+      "r_asked": 1.0,
+      "r_task": 1.0,
+      "elicitation_gap": 0.0,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "States both jsonPath() and xmlPath() evaluate GPath, 'not JSONPath or XPath', with GPath examples like findAll closures \u2014 correctly identifies REST Assured uses Groovy GPath rather than JsonPath syntax."
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "Explicitly states GPath is used 'not Jayway's JsonPath and not XPath', with GPath examples (findAll, @attribute access), and notes Jayway JsonPath would need to be wired in separately."
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "States GPath is used 'not Jayway JsonPath and not XPath' and explicitly notes 'the Jayway-style $.store.book[0] syntax won't work here', matching the key directly."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "Identifies the $ / [?(@...)] syntax as Jayway JsonPath which won't resolve in REST Assured's GPath, states the payload is probably fine, and gives the correct GPath rewrite (items.findAll { it.price > 1999 })."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "States payload is fine, identifies $/[?(@...)] as Jayway syntax not usable in REST Assured's GPath-based .body(), and gives correct GPath rewrite with findAll."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States payload is fine, explains $/@/[?(...)] don't work in GPath, and provides correct GPath rewrite using findAll, matching all elements of the key."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C028",
+      "file": "references/tool-cards.md",
+      "section": "## Browser / end-to-end",
+      "type": "curation",
+      "claim": "An existing large, stable Selenium suite plus team fluency beats a Playwright rewrite \u2014 add new specs in Playwright rather than migrating wholesale.",
+      "answer_key": "Don't migrate wholesale \u2014 a large, stable existing suite plus team fluency outweighs a rewrite; write new specs in Playwright and leave the existing suite in place.",
+      "r_asked": 1.0,
+      "r_task": 0.6666666666666666,
+      "elicitation_gap": 0.333,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "CUT",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "knows",
+            "evidence": "\"if the existing suite works and its pain isn't flakiness, migration rarely pays for itself... write all new tests in Playwright and let the old suite decay naturally rather than doing a big-bang rewrite.\""
+          },
+          {
+            "index": 1,
+            "verdict": "knows",
+            "evidence": "\"An established, passing suite has real value (institutional knowledge, flake profiles, CI tuning) that a rewrite forfeits... write new tests in Playwright and let the existing suite age out naturally, rather than funding a big-bang migration.\""
+          },
+          {
+            "index": 2,
+            "verdict": "knows",
+            "evidence": "\"if your existing suite is stable and maintainable, stay put \u2014 a green suite is worth more than a better framework... don't do a big-bang rewrite. Write new tests in Playwright, run the two suites side by side.\""
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "partial",
+            "evidence": "Frames leaving the old suite alone as merely one conditional outcome of a pilot (\"if no metric moves, the right outcome may be 'new tests in the new stack, old tests left alone indefinitely'\") rather than the firm recommendation; primary plan is to port a slice toward a possible full migration."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "\"Don't migrate 800 working tests in a quarter... your team's fluency in the old stack is a real asset you'd be discarding... write *all new* tests in it.\""
+          },
+          {
+            "index": 5,
+            "verdict": "partial",
+            "evidence": "States \"the two suites coexist indefinitely (no big-bang cutover)\" and cites team understanding as an asset, but the concrete plan is porting an existing slice rather than explicitly directing new specs into Playwright."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C029",
+      "file": "references/tool-cards.md",
+      "section": "## Architecture & quality",
+      "type": "procedural",
+      "claim": "ArchUnit analyses bytecode, so the same architecture rules apply to Java and Kotlin alike (and it runs as a JUnit test).",
+      "answer_key": "ArchUnit reads compiled bytecode, not source, so identical rules cover Kotlin and Java in the same module; it runs as a JUnit test; layer/cycle/naming rules apply unchanged.",
+      "r_asked": 0.5,
+      "r_task": 1.0,
+      "elicitation_gap": -0.5,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "TRIM",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "partial",
+            "evidence": "States ArchUnit reads bytecode via ClassFileImporter and Kotlin is analysable, but immediately frames this with heavy caveats requiring rule adjustments (allowed dependencies for Intrinsics/stdlib, explicitly ignoring synthetic members) rather than affirming rules apply unchanged; no mention it runs as a JUnit test."
+          },
+          {
+            "index": 1,
+            "verdict": "partial",
+            "evidence": "Confirms bytecode-based analysis covers Kotlin, but explicitly states naming/visibility rules 'need .that() filters or ignoreSynthetic-style exclusions' and some constructs 'can't be targeted at all', undercutting the 'rules apply unchanged' claim; no JUnit mention."
+          },
+          {
+            "index": 2,
+            "verdict": "partial",
+            "evidence": "Confirms bytecode reading covers both languages, but says naming and dependency rules 'need to tolerate those synthetic members' and some source concepts 'can't be asserted on directly', which softens the 'unchanged' claim; no JUnit mention."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "knows",
+            "evidence": "States 'Kotlin compiles to ordinary JVM classes, so [the rule] covers both languages with no Kotlin-specific configuration,' directly matching the claim that identical rules apply to Java and Kotlin via bytecode analysis, despite noting a minor caveat about class-name-based naming rules."
+          },
+          {
+            "index": 4,
+            "verdict": "knows",
+            "evidence": "Says 'it analyzes JVM bytecode, so Kotlin and Java classes are treated identically and neither is inherently invisible,' directly conveying that ArchUnit's bytecode-based analysis makes rules apply the same way to both languages."
+          },
+          {
+            "index": 5,
+            "verdict": "knows",
+            "evidence": "States 'ArchUnit sees the compiled .class files, so Kotlin is covered on equal footing with Java,' directly matching the core claim of identical rule coverage via bytecode analysis."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C030",
+      "file": "references/tool-cards.md",
+      "section": "## Kotlin (beyond the book)",
+      "type": "tool_choice",
+      "claim": "MockK is warranted over Mockito for Kotlin object singletons (mockkObject), top-level/extension functions (mockkStatic) and suspending answers (coEvery/coAnswers) \u2014 not merely to mock final classes \u2014 and in a mixed module the rule is never two mockers on the same type, not one mocker per module.",
+      "answer_key": "Final classes is not a valid reason (Mockito 5 handles them by default); MockK is justified for object singletons via mockkObject, top-level/extension functions via mockkStatic, and suspending answers via coEvery/coAnswers; both libraries may coexist in a module \u2014 the rule is never two mockers on the same type.",
+      "r_asked": 0.3333333333333333,
+      "r_task": 0.0,
+      "elicitation_gap": 0.333,
+      "n_asked": 3,
+      "n_task": 3,
+      "invalid_runs": 0,
+      "verdict": "KEEP",
+      "verdicts": {
+        "asked": [
+          {
+            "index": 0,
+            "verdict": "partial",
+            "evidence": "Correctly excludes final classes ('Mockito's inline mock maker (default since 5.x) mocks final classes and methods fine') and correctly lists suspend/coEvery-coVerify, object singletons, and mockkStatic/mockkObject for top-level/extension functions as valid justifications. However the coexistence rule is stated as 'one framework per test class, never both in the same test' rather than 'never two mockers on the same type', so it doesn't land the specific granularity the key requires."
+          },
+          {
+            "index": 1,
+            "verdict": "wrong",
+            "evidence": "Lists 'final-by-default classes (without relying on mock-maker-inline)' as a valid justification for MockK and never corrects this with the fact that Mockito 5 handles finals by default, contradicting the key. Also states the coexistence rule as splitting entirely by language/test file ('MockK for Kotlin tests, Mockito for Java tests, never both in the same test class'), not 'never two mockers on the same type'."
+          },
+          {
+            "index": 2,
+            "verdict": "partial",
+            "evidence": "Initially lists final classes as a valid justification ('absent mockito-inline') but then partially walks it back ('mockito-inline covers final classes'), without ever stating Mockito 5 handles finals by default \u2014 a muddled treatment of the key fact. Correctly names object singletons, top-level/extension functions, and suspend functions as valid gaps. Coexistence rule given as 'One framework per test class... Draw the boundary at the language line' rather than 'never two mockers on the same type'."
+          }
+        ],
+        "task": [
+          {
+            "index": 3,
+            "verdict": "wrong",
+            "evidence": "Correctly says final classes aren't a valid reason, but explicitly claims 'mockito-kotlin gives you... onBlocking/suspend-function support' so suspend functions also don't justify a second library \u2014 contradicting the key's point that coEvery/coAnswers for suspending answers is a valid MockK justification. Never mentions mockkStatic for top-level/extension functions. Coexistence advice is 'switch the whole module to MockK rather than running both', i.e., one mocker per module, which the key explicitly rejects."
+          },
+          {
+            "index": 4,
+            "verdict": "wrong",
+            "evidence": "States Mockito 5 handles finals by default (correct) but claims 'mockito-kotlin covers the coroutine repository via onBlocking... since suspend functions are just methods with an extra Continuation parameter', denying that suspend/coEvery is a valid MockK justification. Doesn't mention mockkStatic/top-level functions. Recommends 'migrate the whole module to MockK, not run two libraries side by side' \u2014 contradicts the key's 'never two mockers on same type, not one mocker per module' rule."
+          },
+          {
+            "index": 5,
+            "verdict": "wrong",
+            "evidence": "Correctly notes Mockito 5's inline mock maker handles finals by default, but says 'mockito-kotlin handles suspend functions cleanly via onBlocking/runTest', rejecting suspend as a genuine MockK justification (contradicts key). No mention of mockkStatic for top-level/extension functions. Advises 'migrate that module to MockK wholesale rather than run both side by side', which is the 'one mocker per module' framing the key says is wrong."
+          }
+        ]
+      }
+    }
+  ]
+}

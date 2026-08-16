@@ -21,10 +21,9 @@ description: >-
 
 # JVM Testing Toolbox — tool selector
 
-This is a **router**, not a tutorial. Assume idiomatic use of well-known tools
-(JUnit 5/6, Mockito, AssertJ, MockK) is already known. The value here is **which tool
-fits which problem**, the **tie-breakers** between overlapping tools, and the
-**pitfalls** that bite in practice.
+This is a **router**, not a tutorial. Idiomatic use of the tools themselves is
+assumed known. The value here is **which tool fits which problem**, the
+**tie-breakers** between overlapping tools, and the **pitfalls** that bite.
 
 Distilled from **Philip Riecks — _Java Testing Toolbox: 30 Testing Tools and
 Libraries Every Java Developer Must Know_**, then **curated** rather than
@@ -55,8 +54,7 @@ the row is stale.
 1. Find the row matching the problem in the tables below.
 2. Take the **bold default** unless a tie-breaker condition applies.
 3. If the choice is contested or has a known trap, open
-   `references/tool-cards.md` (per-tool: purpose + the one high-signal note) and
-   `references/pitfalls.md` (cross-cutting gotchas + tie-breaker rationale).
+   `references/tool-cards.md` (per-tool: purpose + the one high-signal note).
 4. Only pull deeper detail when routing has landed — don't preload all cards.
 
 **Java or Kotlin?** These tables apply to both. Where the Kotlin answer differs the
@@ -74,87 +72,85 @@ engine is listed here — that is a deliberate constraint, not an omission.
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Write a standard unit/integration test on Java 17+ | **JUnit 6 (Jupiter)** | The default for anything new (GA Sep 2025). Same Jupiter API/packages as JUnit 5; Platform/Jupiter/Vintage now share one 6.x version — align via `junit-bom`. |
-| Write tests but stuck on Java 8–16 | JUnit 5 (Jupiter) | Same programming model; JUnit 6 requires **Java 17+** (Kotlin 2.2+). Get to 5.14 first — it flags 6.0 removals as deprecations. |
+| Write a standard unit/integration test on Java 17+ | **JUnit 6 (Jupiter)** | The default for anything new. Align Platform/Jupiter/Vintage via `junit-bom`. |
+| Write tests but stuck on Java 8–16 | JUnit 5 (Jupiter) | JUnit 6 needs **Java 17+** (Kotlin 2.2+). Get to 5.14 first — it flags 6.0 removals as deprecations. |
 | Maintain a legacy suite on the old API | JUnit 4 | Runs via `junit-vintage-engine` — **deprecated in JUnit 6**; migrate when able. **Never mix JUnit 4 and Jupiter imports in one class** — see pitfalls. |
 
 ### Assertion libraries
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Fluent, chainable assertions on any type | **AssertJ** | Default for everything new. Soft assertions to report all failures at once; custom `AbstractAssert` for domain types. Works unchanged from Kotlin. |
-| Matcher-style `assertThat(actual, matcher)` | Hamcrest | **You will meet this whether or not you choose it** — Spring MockMvc's `ResultMatchers` are Hamcrest-based. Arg order is the reverse of JUnit's `assertEquals(expected, actual)`. Read it fluently; don't reach for it when writing new assertions. |
-| Extract a value from a JSON payload | **JsonPath** | `$..price.max()`, filters `[?(@.tags.size() > 2)]`. It *extracts* — pair it with an assertion library. |
-| Compare a whole JSON document | **JSONAssert** | Verifies logical structure. **Mind `strictMode`/`JSONCompareMode`** — lenient by default; strict enforces array order + no extra fields. |
+| Fluent, chainable assertions on any type | **AssertJ** | Default for everything new. Works unchanged from Kotlin. |
+| Matcher-style `assertThat(actual, matcher)` | Hamcrest | **You will meet this whether or not you choose it** — Spring MockMvc's `ResultMatchers` are Hamcrest-based. Read it fluently; don't reach for it when writing new assertions. |
+| Extract a value from a JSON payload | **JsonPath** | It *extracts* — pair it with an assertion library. |
+| Compare a whole JSON document | **JSONAssert** | Whole-document structural compare. **Set `JSONCompareMode` deliberately.** |
 
 ### Mocking & stubbing
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Mock/stub collaborators of a class under test | **Mockito** | Default. Keep the four golden rules; watch `UnnecessaryStubbingException` (strictness). Since **Mockito 5** the inline mock-maker is the default, so final classes and statics mock with no extra dependency — Kotlin's final-by-default classes included. **Kotlin:** `mockito-kotlin` adds null-safe matchers and `onBlocking`; for `object`s, extension fns or suspending answers see *Kotlin on the JVM*. |
+| Mock/stub collaborators of a class under test | **Mockito** | Default; final classes and statics need no extra dependency. Watch `UnnecessaryStubbingException` (strictness). **Kotlin:** `mockito-kotlin` adds null-safe matchers and `onBlocking`; for `object`s, extension fns or suspending answers see *Kotlin on the JVM*. |
 
 ### Mock an external HTTP API
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Stub and verify an outbound HTTP dependency | **WireMock** | Request matching on header/body/query, verification (`verify(getRequestedFor(...))`), stub priorities, standalone/Docker for cross-team use. Use the Jupiter support (`@WireMockTest` or a registered `WireMockExtension`) rather than hand-rolled `@BeforeAll` lifecycle — stubs reset between tests. |
+| Stub and verify an outbound HTTP dependency | **WireMock** | Standalone/Docker when the stubs are shared cross-team. Use the Jupiter support (`@WireMockTest` or a registered `WireMockExtension`) rather than hand-rolled `@BeforeAll` lifecycle — stubs reset between tests. |
 
 ### Real infrastructure (integration / e2e)
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| A real DB, broker, cache, search index, identity server, cloud emulator — anything that ships as a container | **Testcontainers** | The general answer; prefer it over a bespoke fake or an in-memory substitute that behaves differently from production. Official module where one exists, else `GenericContainer`. **Always set a wait strategy** — "container started" ≠ "service ready", and that race is the top cause of flaky integration tests. On Spring Boot 3.1+ use `@ServiceConnection`. |
+| A real DB, broker, cache, search index, identity server, cloud emulator — anything that ships as a container | **Testcontainers** | The general answer; prefer it over a bespoke fake or an in-memory substitute that behaves differently from production. Official module where one exists, else `GenericContainer`. **Always set an explicit wait strategy.** On Spring Boot 3.1+ use `@ServiceConnection`. |
 
 ### REST API testing
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Black-box test an HTTP API fluently | **REST Assured** | given/when/then DSL, reusable request/response specs. Its `jsonPath()` uses **Groovy GPath, not Jayway JsonPath** — don't copy `$..` expressions into it. |
+| Black-box test an HTTP API fluently | **REST Assured** | given/when/then DSL, reusable request/response specs. Its `jsonPath()` is **Groovy GPath, not Jayway JsonPath** — expressions don't carry over from the JsonPath row. |
 
 ### Asynchronous code
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Assert on a result that appears eventually | **Awaitility** | `await().atMost(...).until(...)` / `.untilAsserted(...)`. **Never `Thread.sleep`.** `ignoreExceptions()` while a resource is still coming up. |
+| Assert on a result that appears eventually | **Awaitility** | **Never `Thread.sleep`.** `ignoreExceptions()` while a resource is still coming up. |
 
 ### Browser / end-to-end
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Browser tests for a new suite | **Playwright** (Java binding) | Auto-waiting, one API across Chromium/Firefox/WebKit, tracing and codegen built in. Measurably faster and far less flaky than Selenium in published comparisons. **Tie-breaker:** if the team already has a large, stable Selenium suite and fluency in it, staying there ships faster than a rewrite — migrate new specs, don't big-bang. |
+| Browser tests for a new suite | **Playwright** (Java binding) | Measurably faster and far less flaky than Selenium in published comparisons. **Tie-breaker:** if the team already has a large, stable Selenium suite and fluency in it, staying there ships faster than a rewrite — migrate new specs, don't big-bang. |
 
 ### Behaviour-driven testing
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Executable specifications in Gherkin, readable by non-engineers | **Cucumber (JVM)** | The reference Gherkin implementation and the safe default. Run 7.x via the **JUnit 5 Platform Suite** (`@Suite` + `@IncludeEngines("cucumber")`) — not the legacy JUnit 4 runner. **Only adopt if non-engineers genuinely read the features**; if they don't, plain JUnit + AssertJ is cheaper and clearer than maintaining step definitions. |
+| Executable specifications in Gherkin, readable by non-engineers | **Cucumber (JVM)** | The reference Gherkin implementation and the safe default. **Only adopt if non-engineers genuinely read the features**; if they don't, plain JUnit + AssertJ is cheaper and clearer than maintaining step definitions. |
 
 ### Architecture & test quality
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Enforce layering / no cycles / naming as tests | **ArchUnit** | Rules as JUnit tests; e.g. "services must not depend on controllers", "`LocalDate.now()` must take a `Clock`". Reads bytecode, so it covers Java and Kotlin alike. |
-| Auto-generate random, fully populated test objects | Instancio | Cuts test-data boilerplate; `set`/`ignore`/`generate`, `ofList(n)`; integrates with Bean Validation. |
-| Judge whether tests actually verify behavior | **PIT (pitest)** | **Coverage ≠ quality.** Mutates bytecode; surviving mutants reveal tests that execute code without asserting on it. Scope it to changed code to keep runs fast. **Kotlin:** generated `Intrinsics` null checks inflate the report — see pitfalls. |
+| Enforce layering / no cycles / naming as tests | **ArchUnit** | Rules as JUnit tests. Reads bytecode, so it covers Java and Kotlin alike. |
+| Auto-generate random, fully populated test objects | Instancio | Cuts test-data boilerplate; integrates with Bean Validation. |
+| Judge whether tests actually verify behavior | **PIT (pitest)** | **Coverage ≠ quality** — surviving mutants reveal tests that execute code without asserting on it. Scope it to changed code to keep runs fast. **Kotlin:** generated `Intrinsics` null checks inflate the report — see pitfalls. |
 
 ### Kotlin on the JVM
 
 Every table above applies to Kotlin unchanged. These are the Kotlin-**specific**
-choices — a swap for a shared concern, plus axes with no Java equivalent. All are
-**beyond Riecks' (Java-framed) book**; depth and the mixed-source-set interop traps
-are in `references/kotlin.md`.
+choices, all **beyond Riecks' (Java-framed) book**; depth and the mixed-source-set
+interop traps are in `references/kotlin.md`.
 
 | I need to… | Reach for | Tie-breaker / note |
 |---|---|---|
-| Mock a Kotlin `object`, extension fn, or suspending answer | **MockK** | `mockkObject`, `mockkStatic`, `coEvery { } coAnswers { }`. For ordinary classes Mockito 5 + `mockito-kotlin` is fine — final classes mock by default, `onBlocking` stubs `suspend` fns. Never two mockers on the same type. |
-| Test `suspend` functions / coroutine scheduling | **kotlinx-coroutines-test** | `runTest { }` drives virtual time; advance with `advanceUntilIdle()` / `runCurrent()`. Inject dispatchers — don't hardcode `Dispatchers.IO`. **Not** for waiting on real infrastructure — that stays Awaitility. |
-| Assert on values a `Flow` emits | **kotlinx-coroutines-test** | **Cold, finite flow:** collect it inside `runTest` — `toList()`/`first()`/`last()`. **Hot flow** (`StateFlow`/`SharedFlow`) never completes, so `toList()` hangs: collect in `TestScope.backgroundScope`, which is cancelled at test end, using `UnconfinedTestDispatcher` so the collector is live before the first emission. |
+| Mock a Kotlin `object`, extension fn, or suspending answer | **MockK** | `mockkObject`, `mockkStatic`, `coEvery { } coAnswers { }`. For ordinary classes Mockito + `mockito-kotlin` is fine. Never two mockers on the same type. |
+| Test `suspend` functions / coroutine scheduling | **kotlinx-coroutines-test** | `runTest { }` drives virtual time. Inject dispatchers — don't hardcode `Dispatchers.IO`. **Not** for waiting on real infrastructure — that stays Awaitility. |
+| Assert on values a `Flow` emits | **kotlinx-coroutines-test** | **Cold, finite flow:** collect it inside `runTest`. **Hot flow** (`StateFlow`/`SharedFlow`): collect in `TestScope.backgroundScope` with `UnconfinedTestDispatcher`. |
 | Fix Java/Kotlin interop in one source set | `references/kotlin.md` | `@JvmStatic` for `@BeforeAll`/`@MethodSource`, platform types weakening null assertions, `internal` friend-paths, PIT noise on Kotlin null checks. |
 
 ## Cross-cutting reminders
 
-Silent-failure traps that no single row owns — these corrupt a suite rather than
-merely picking the wrong tool:
+Silent-failure traps that no single row owns — these corrupt a suite:
 
 - **Don't mix JUnit 4 and Jupiter (JUnit 5/6)** annotations/imports in the same test
   class. Lifecycle callbacks stop firing and tests "pass" without running.
@@ -166,5 +162,5 @@ merely picking the wrong tool:
   `runTest` for coroutine scheduling. They are not interchangeable: virtual time
   cannot wait on a container.
 
-Otherwise take the **bold default**, and deviate only when a tie-breaker in
-`references/pitfalls.md` clearly applies.
+Otherwise take the **bold default**, and deviate only when a tie-breaker in the
+row itself clearly applies.

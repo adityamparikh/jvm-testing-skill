@@ -1,0 +1,23 @@
+[
+  {"query": "our integration tests use H2 in postgres compatibility mode and an embedded kafka. we keep shipping things that pass tests and break in staging. what should we be running against instead", "should_trigger": true},
+  {"query": "I need to stub a partner's REST API in tests — verify we sent the right headers, and check what our client does when it returns 503. we're on OkHttp. what's the standard tool for this on the JVM", "should_trigger": true},
+  {"query": "kotlin. my test collects a StateFlow from a ViewModel into a list and then asserts on it, and the test just hangs until the timeout. cold flows work fine. what am I doing wrong", "should_trigger": true},
+  {"query": "we're on java 11 and kotlin 1.9 and a teammate opened a PR bumping the test framework to the newest major line. CI now fails before any test runs. should we be on that version at all", "should_trigger": true},
+  {"query": "management is happy we hit 92% line coverage. I'm not — I've seen tests in here that call a method and assert nothing. how do I actually measure whether the suite verifies behaviour", "should_trigger": true},
+  {"query": "test publishes a message then checks a projection row appeared in the read model. green locally, flaky in CI. there's a Thread.sleep(2000) in the middle of it. what's the right way to write this", "should_trigger": true},
+  {"query": "I need to pull the highest price across nested line items out of a JSON response so I can assert on it, without deserialising the whole payload into POJOs for one number", "should_trigger": true},
+  {"query": "we have about 400 stable selenium tests and a contractor is pushing to rewrite the whole suite in playwright before we add one new checkout flow. what should we actually do here", "should_trigger": true},
+  {"query": "people keep reintroducing package cycles and services importing controllers. code review isn't catching it. can this be enforced in the build as a test", "should_trigger": true},
+  {"query": "mixed java and kotlin in one source set. my @BeforeAll in a kotlin test class isn't running and I can't work out why", "should_trigger": true},
+
+  {"query": "our test suite takes 8 minutes and most of it is spring context startup. how do we get the context to be reused across test classes instead of rebuilt", "should_trigger": false},
+  {"query": "p99 on the quote endpoint is 4.2s against a 400ms SLA while the mean is 190ms. JFR shows monitor contention dominating. where do I go from here", "should_trigger": false},
+  {"query": "HikariPool-1 - Connection is not available, request timed out after 30014ms — seeing this in our integration test runs against a real postgres. pool is 10", "should_trigger": false},
+  {"query": "we need to know how many concurrent users checkout can handle before p99 breaks 500ms, and produce a report for capacity planning. which tool", "should_trigger": false},
+  {"query": "converting our maven surefire and failsafe config to gradle. how do I keep unit and integration tests as separate tasks with a version catalog", "should_trigger": false},
+  {"query": "what's the difference between @MockBean and @MockitoBean in recent spring boot, and which should I be using now", "should_trigger": false},
+  {"query": "our github actions test job runs out of memory about one run in five. the runner has 7GB. gradle daemon plus a couple of containers", "should_trigger": false},
+  {"query": "I want property-based testing for a scala module we're adding alongside the java services. what should we wire into the build", "should_trigger": false},
+  {"query": "code review question — is it acceptable for a unit test to assert on log output, or is that always a smell? we have a few doing it", "should_trigger": false},
+  {"query": "our CI flakiness is mostly tests that depend on each other's ordering. is there a way to force random test order so we surface these", "should_trigger": false}
+]

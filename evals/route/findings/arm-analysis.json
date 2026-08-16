@@ -1,0 +1,655 @@
+{
+  "source": "evals/results/matrix-discriminating/runs.json",
+  "skill_sha": "ff0c7278838d2038fd085aa6797910f8c7d27c60",
+  "model": "claude-opus-5",
+  "arms": {
+    "A0": 3,
+    "A1": 3,
+    "A2": 3,
+    "A3": 3,
+    "A4": 3
+  },
+  "eval_set_quality": {
+    "n_cases": 9,
+    "n_ceiling": 1,
+    "ceiling_fraction": 0.111,
+    "note": "Ceiling cases pass in both arms and measure the model, not the skill. A suite that is mostly ceiling is not measuring what it claims to."
+  },
+  "contrasts": [
+    {
+      "contrast": "A1 - A0",
+      "n_cases": 9,
+      "mean_base": 0.444,
+      "mean_test": 0.444,
+      "delta_all": -0.0,
+      "delta_excl_ceiling": -0.0,
+      "ci95": [
+        -0.143,
+        0.143
+      ],
+      "ci_excludes_zero": false,
+      "plausibility_weighted_delta": -0.0,
+      "sign": {
+        "wins": 1,
+        "losses": 1,
+        "ties": 7
+      },
+      "classes": {
+        "ceiling": 2,
+        "floor": 3,
+        "discriminating": 1,
+        "weak": 2,
+        "inverted": 1
+      },
+      "inverted_cases": [
+        "T02a"
+      ],
+      "ceiling_cases": [
+        "R04",
+        "T01b"
+      ],
+      "per_case": {
+        "T04a": {
+          "base": 0.3333333333333333,
+          "test": 0.3333333333333333,
+          "delta": 0.0,
+          "class": "weak"
+        },
+        "P02": {
+          "base": 0.0,
+          "test": 0.0,
+          "delta": 0.0,
+          "class": "floor"
+        },
+        "R04": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "N01": {
+          "base": 0.0,
+          "test": 0.0,
+          "delta": 0.0,
+          "class": "floor"
+        },
+        "P01": {
+          "base": 0.0,
+          "test": 0.0,
+          "delta": 0.0,
+          "class": "floor"
+        },
+        "T01b": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "T02a": {
+          "base": 1.0,
+          "test": 0.6666666666666666,
+          "delta": -0.333,
+          "class": "inverted"
+        },
+        "N02": {
+          "base": 0.3333333333333333,
+          "test": 0.6666666666666666,
+          "delta": 0.333,
+          "class": "discriminating"
+        },
+        "T02b": {
+          "base": 0.3333333333333333,
+          "test": 0.3333333333333333,
+          "delta": 0.0,
+          "class": "weak"
+        }
+      }
+    },
+    {
+      "contrast": "A2 - A0",
+      "n_cases": 9,
+      "mean_base": 0.444,
+      "mean_test": 0.778,
+      "delta_all": 0.333,
+      "delta_excl_ceiling": 0.429,
+      "ci95": [
+        0.0,
+        0.81
+      ],
+      "ci_excludes_zero": true,
+      "plausibility_weighted_delta": 0.333,
+      "sign": {
+        "wins": 5,
+        "losses": 2,
+        "ties": 2
+      },
+      "classes": {
+        "ceiling": 2,
+        "floor": 0,
+        "discriminating": 5,
+        "weak": 0,
+        "inverted": 2
+      },
+      "inverted_cases": [
+        "T04a",
+        "T02a"
+      ],
+      "ceiling_cases": [
+        "R04",
+        "T01b"
+      ],
+      "per_case": {
+        "T04a": {
+          "base": 0.3333333333333333,
+          "test": 0.0,
+          "delta": -0.333,
+          "class": "inverted"
+        },
+        "P02": {
+          "base": 0.0,
+          "test": 1.0,
+          "delta": 1.0,
+          "class": "discriminating"
+        },
+        "R04": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "N01": {
+          "base": 0.0,
+          "test": 0.6666666666666666,
+          "delta": 0.667,
+          "class": "discriminating"
+        },
+        "P01": {
+          "base": 0.0,
+          "test": 1.0,
+          "delta": 1.0,
+          "class": "discriminating"
+        },
+        "T01b": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "T02a": {
+          "base": 1.0,
+          "test": 0.6666666666666666,
+          "delta": -0.333,
+          "class": "inverted"
+        },
+        "N02": {
+          "base": 0.3333333333333333,
+          "test": 0.6666666666666666,
+          "delta": 0.333,
+          "class": "discriminating"
+        },
+        "T02b": {
+          "base": 0.3333333333333333,
+          "test": 1.0,
+          "delta": 0.667,
+          "class": "discriminating"
+        }
+      }
+    },
+    {
+      "contrast": "A3 - A0",
+      "n_cases": 9,
+      "mean_base": 0.444,
+      "mean_test": 0.778,
+      "delta_all": 0.333,
+      "delta_excl_ceiling": 0.429,
+      "ci95": [
+        0.048,
+        0.81
+      ],
+      "ci_excludes_zero": true,
+      "plausibility_weighted_delta": 0.333,
+      "sign": {
+        "wins": 5,
+        "losses": 2,
+        "ties": 2
+      },
+      "classes": {
+        "ceiling": 2,
+        "floor": 0,
+        "discriminating": 5,
+        "weak": 0,
+        "inverted": 2
+      },
+      "inverted_cases": [
+        "T04a",
+        "R04"
+      ],
+      "ceiling_cases": [
+        "T01b",
+        "T02a"
+      ],
+      "per_case": {
+        "T04a": {
+          "base": 0.3333333333333333,
+          "test": 0.0,
+          "delta": -0.333,
+          "class": "inverted"
+        },
+        "P02": {
+          "base": 0.0,
+          "test": 1.0,
+          "delta": 1.0,
+          "class": "discriminating"
+        },
+        "R04": {
+          "base": 1.0,
+          "test": 0.6666666666666666,
+          "delta": -0.333,
+          "class": "inverted"
+        },
+        "N01": {
+          "base": 0.0,
+          "test": 0.6666666666666666,
+          "delta": 0.667,
+          "class": "discriminating"
+        },
+        "P01": {
+          "base": 0.0,
+          "test": 1.0,
+          "delta": 1.0,
+          "class": "discriminating"
+        },
+        "T01b": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "T02a": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "N02": {
+          "base": 0.3333333333333333,
+          "test": 1.0,
+          "delta": 0.667,
+          "class": "discriminating"
+        },
+        "T02b": {
+          "base": 0.3333333333333333,
+          "test": 0.6666666666666666,
+          "delta": 0.333,
+          "class": "discriminating"
+        }
+      }
+    },
+    {
+      "contrast": "A4 - A0",
+      "n_cases": 9,
+      "mean_base": 0.444,
+      "mean_test": 0.852,
+      "delta_all": 0.407,
+      "delta_excl_ceiling": 0.611,
+      "ci95": [
+        0.222,
+        0.944
+      ],
+      "ci_excludes_zero": true,
+      "plausibility_weighted_delta": 0.407,
+      "sign": {
+        "wins": 5,
+        "losses": 1,
+        "ties": 3
+      },
+      "classes": {
+        "ceiling": 3,
+        "floor": 0,
+        "discriminating": 5,
+        "weak": 0,
+        "inverted": 1
+      },
+      "inverted_cases": [
+        "N02"
+      ],
+      "ceiling_cases": [
+        "R04",
+        "T01b",
+        "T02a"
+      ],
+      "per_case": {
+        "T04a": {
+          "base": 0.3333333333333333,
+          "test": 0.6666666666666666,
+          "delta": 0.333,
+          "class": "discriminating"
+        },
+        "P02": {
+          "base": 0.0,
+          "test": 1.0,
+          "delta": 1.0,
+          "class": "discriminating"
+        },
+        "R04": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "N01": {
+          "base": 0.0,
+          "test": 1.0,
+          "delta": 1.0,
+          "class": "discriminating"
+        },
+        "P01": {
+          "base": 0.0,
+          "test": 1.0,
+          "delta": 1.0,
+          "class": "discriminating"
+        },
+        "T01b": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "T02a": {
+          "base": 1.0,
+          "test": 1.0,
+          "delta": 0.0,
+          "class": "ceiling"
+        },
+        "N02": {
+          "base": 0.3333333333333333,
+          "test": 0.0,
+          "delta": -0.333,
+          "class": "inverted"
+        },
+        "T02b": {
+          "base": 0.3333333333333333,
+          "test": 1.0,
+          "delta": 0.667,
+          "class": "discriminating"
+        }
+      }
+    }
+  ],
+  "subsets": {
+    "sub_suite:routing": {
+      "A1 - A0": {
+        "n_cases": 1,
+        "mean_base": 1.0,
+        "mean_test": 1.0,
+        "delta_all": 0.0,
+        "sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 1
+        }
+      },
+      "A2 - A0": {
+        "n_cases": 1,
+        "mean_base": 1.0,
+        "mean_test": 1.0,
+        "delta_all": 0.0,
+        "sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 1
+        }
+      },
+      "A3 - A0": {
+        "n_cases": 1,
+        "mean_base": 1.0,
+        "mean_test": 0.667,
+        "delta_all": -0.333,
+        "sign": {
+          "wins": 0,
+          "losses": 1,
+          "ties": 0
+        }
+      },
+      "A4 - A0": {
+        "n_cases": 1,
+        "mean_base": 1.0,
+        "mean_test": 1.0,
+        "delta_all": 0.0,
+        "sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 1
+        }
+      }
+    },
+    "sub_suite:tiebreak": {
+      "A1 - A0": {
+        "n_cases": 4,
+        "mean_base": 0.667,
+        "mean_test": 0.583,
+        "delta_all": -0.083,
+        "sign": {
+          "wins": 0,
+          "losses": 1,
+          "ties": 3
+        }
+      },
+      "A2 - A0": {
+        "n_cases": 4,
+        "mean_base": 0.667,
+        "mean_test": 0.667,
+        "delta_all": 0.0,
+        "sign": {
+          "wins": 1,
+          "losses": 2,
+          "ties": 1
+        }
+      },
+      "A3 - A0": {
+        "n_cases": 4,
+        "mean_base": 0.667,
+        "mean_test": 0.667,
+        "delta_all": 0.0,
+        "sign": {
+          "wins": 1,
+          "losses": 1,
+          "ties": 2
+        }
+      },
+      "A4 - A0": {
+        "n_cases": 4,
+        "mean_base": 0.667,
+        "mean_test": 0.917,
+        "delta_all": 0.25,
+        "sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 2
+        }
+      }
+    },
+    "sub_suite:negative": {
+      "A1 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.167,
+        "mean_test": 0.333,
+        "delta_all": 0.167,
+        "sign": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 1
+        }
+      },
+      "A2 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.167,
+        "mean_test": 0.667,
+        "delta_all": 0.5,
+        "sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 0
+        }
+      },
+      "A3 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.167,
+        "mean_test": 0.833,
+        "delta_all": 0.667,
+        "sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 0
+        }
+      },
+      "A4 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.167,
+        "mean_test": 0.5,
+        "delta_all": 0.333,
+        "sign": {
+          "wins": 1,
+          "losses": 1,
+          "ties": 0
+        }
+      }
+    },
+    "conformance": {
+      "A1 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.167,
+        "mean_test": 0.333,
+        "delta_all": 0.167,
+        "sign": {
+          "wins": 1,
+          "losses": 0,
+          "ties": 1
+        }
+      },
+      "A2 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.167,
+        "mean_test": 0.667,
+        "delta_all": 0.5,
+        "sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 0
+        }
+      },
+      "A3 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.167,
+        "mean_test": 0.833,
+        "delta_all": 0.667,
+        "sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 0
+        }
+      },
+      "A4 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.167,
+        "mean_test": 0.5,
+        "delta_all": 0.333,
+        "sign": {
+          "wins": 1,
+          "losses": 1,
+          "ties": 0
+        }
+      }
+    },
+    "sub_suite:protocol": {
+      "A1 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.0,
+        "mean_test": 0.0,
+        "delta_all": 0.0,
+        "sign": {
+          "wins": 0,
+          "losses": 0,
+          "ties": 2
+        }
+      },
+      "A2 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.0,
+        "mean_test": 1.0,
+        "delta_all": 1.0,
+        "sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 0
+        }
+      },
+      "A3 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.0,
+        "mean_test": 1.0,
+        "delta_all": 1.0,
+        "sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 0
+        }
+      },
+      "A4 - A0": {
+        "n_cases": 2,
+        "mean_base": 0.0,
+        "mean_test": 1.0,
+        "delta_all": 1.0,
+        "sign": {
+          "wins": 2,
+          "losses": 0,
+          "ties": 0
+        }
+      }
+    }
+  },
+  "cost": {
+    "A2": {
+      "runs": 27,
+      "passed": 21,
+      "median_tokens": 8542,
+      "median_duration_ms": 22698,
+      "total_cost_usd": 1.22,
+      "tokens_per_passed_case": 12013
+    },
+    "A1": {
+      "runs": 27,
+      "passed": 12,
+      "median_tokens": 5262,
+      "median_duration_ms": 28233,
+      "total_cost_usd": 1.27,
+      "tokens_per_passed_case": 11878
+    },
+    "A3": {
+      "runs": 27,
+      "passed": 21,
+      "median_tokens": 31632,
+      "median_duration_ms": 39030,
+      "total_cost_usd": 3.32,
+      "tokens_per_passed_case": 41581
+    },
+    "A0": {
+      "runs": 27,
+      "passed": 12,
+      "median_tokens": 5303,
+      "median_duration_ms": 29899,
+      "total_cost_usd": 1.26,
+      "tokens_per_passed_case": 12428
+    },
+    "A4": {
+      "runs": 27,
+      "passed": 23,
+      "median_tokens": 12420,
+      "median_duration_ms": 24089,
+      "total_cost_usd": 1.24,
+      "tokens_per_passed_case": 14684
+    }
+  },
+  "power_note": "With 9 cases this design detects roughly >=0.17 reliably and cannot distinguish +0.05 from zero. Treat the base-vs-full contrast as the single confirmatory test; every other contrast is exploratory.",
+  "_note": "Arms run on the 9 cases an A0-only pilot showed could discriminate; the other 12 of 21 were ceiling at baseline and would only have diluted the estimate. 3 reps per cell, so rate granularity is 0.33 and a single flipped rep reaches the inverted threshold - read R04 and T04a accordingly."
+}
