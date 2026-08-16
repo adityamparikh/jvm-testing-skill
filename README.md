@@ -54,13 +54,50 @@ Packaged and maintained by [Aditya Parikh (@adityamparikh)](https://github.com/a
 ## What's inside
 
 ```
-.claude/skills/jvm-testing-toolbox/
+.claude/skills/jvm-testing-toolbox/     ← canonical content
 ├── SKILL.md                 # the router: problem → tool decision tables
 └── references/
     ├── tool-cards.md        # one card per tool: purpose + the one high-signal note
     ├── pitfalls.md          # cross-cutting gotchas + tie-breaker rationale
     └── kotlin.md            # Kotlin depth + Java/Kotlin interop in one source set
+
+AGENTS.md                                        ← index + pointer (most agents)
+.github/instructions/jvm-testing.instructions.md ← index + pointer (Copilot)
+.cursor/rules/jvm-testing.mdc                    ← index + pointer (Cursor)
 ```
+
+### Which agents this works with
+
+The routing tables are written for **Claude Code's skill format**, which loads
+`SKILL.md` only when a testing question matches its description and pulls
+`references/*` only once routing lands. That progressive disclosure is the design —
+it keeps 170 lines of tables out of context on unrelated work.
+
+Other agents get **pointer files**, each using that agent's own gating so the content
+isn't always-loaded:
+
+| File | Read by | Gating |
+|---|---|---|
+| `AGENTS.md` | Codex, Cursor, Copilot, Gemini CLI, Aider, Windsurf, Zed, Devin, Jules, VS Code, Junie — and Claude Code | always loaded, so it stays short |
+| `.github/instructions/jvm-testing.instructions.md` | GitHub Copilot | `applyTo` globs — test sources only |
+| `.cursor/rules/jvm-testing.mdc` | Cursor | `globs` + `alwaysApply: false` — auto-attaches on test files |
+
+**None of them restate the tool list.** A copy would drift from the router the first
+time a tool is added or dropped, and a stale index is worse than no index — so the
+routing tables live in exactly one place.
+
+How each avoids duplicating them differs, because the mechanisms differ:
+
+- **Cursor** supports `@filename` includes, so the rule is a genuine pointer: it
+  `@`-references `SKILL.md` and the three reference files and states nothing itself.
+- **Copilot** and **AGENTS.md** have no include mechanism, so they instruct the agent
+  to read `SKILL.md` and carry only a handful of silent-failure traps — JUnit 4/Jupiter
+  mixing, `junit-bom` alignment, two mockers on one type, `Thread.sleep`. Those are
+  stable enough to survive tool-list churn, which the index is not.
+
+**One caveat:** for Copilot and AGENTS.md, a pointer only works if the agent actually
+opens the referenced file — weaker than Cursor's `@` includes or Claude's native
+loading.
 
 ## Coverage
 
@@ -137,10 +174,15 @@ has chosen not to answer.
 
 ## Usage
 
-Drop the `.claude/skills/jvm-testing-toolbox/` directory into a project (or a
-personal skills directory) so your agent can discover it. The agent loads
-`SKILL.md` when a testing-tool-selection question arises, then pulls
-`references/*` only once routing lands on a specific tool.
+**Claude Code:** drop the `.claude/skills/jvm-testing-toolbox/` directory into a
+project (or a personal skills directory) so your agent can discover it. It loads
+`SKILL.md` when a testing-tool-selection question arises, then pulls `references/*`
+only once routing lands on a specific tool.
+
+**Other agents:** copy the skill directory *plus* the pointer file for your tool —
+`AGENTS.md`, `.github/instructions/jvm-testing.instructions.md`, or
+`.cursor/rules/jvm-testing.mdc`. The pointers are useless without the skill directory
+they reference.
 
 ## License
 
